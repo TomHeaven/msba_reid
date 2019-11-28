@@ -8,4 +8,6 @@ MODEL.NAME 'aligned_resnet101_ibn' \
 MODEL.BACKBONE 'aligned_resnet101' \
 MODEL.WITH_IBN 'True' \
 TEST.WEIGHT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/aligned_resnet101_ibn_bs63/ckpts/model_best.pth'
-#TEST.WEIGHT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/aligned_resnet101_ibn_bs63_xiao/ckpts/model_best.pth'
+
+#TEST.WEIGHT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/aligned_resnet101_ibn_bs63/ckpts/model_best.pth'
+

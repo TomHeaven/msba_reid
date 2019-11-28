@@ -210,11 +210,11 @@ class ImageDataset(Dataset):
     data in each batch has shape (batch_size, channel, height, width).
     """
 
-    preload_image = True
+    #preload_image = True
 
-    def __init__(self, train, query, gallery, **kwargs):
+    def __init__(self, train, query, gallery, preload_image=False, **kwargs):
         super(ImageDataset, self).__init__(train, query, gallery, **kwargs)
-
+        self.preload_image = preload_image
         if self.preload_image:
             self.imgs = {}
             for i in range(self.__len__()):

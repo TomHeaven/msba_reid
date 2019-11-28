@@ -6,9 +6,9 @@
 
 from torch import nn
 
-from .backbones import *
-from .losses.cosface import AddMarginProduct
-from .utils import *
+from modeling.backbones import *
+from modeling.losses.cosface import AddMarginProduct
+from modeling.utils import *
 
 __all__ =['Baseline', 'BASE_RESNET50', 'BASE_MPNCOV_RESNET101', 'BASE_ALIGNED_RESNET50', 'BASE_ALIGNED_RESNET101',
           'BASE_ALIGNED_RESNEXT101', 'BASE_ALIGNED_RESNEXT50', 'BASE_ALIGNED_SE_RESNET101', 'BASE_ALIGNED_DENSENET169',
@@ -81,14 +81,16 @@ class Baseline(nn.Module):
             ## 加 abd
             elif backbone == 'aligned_resnet50_abd':
                 self.base_type = BASE_ALIGNED_RESNET50_ABD
-                self.base = aligned_net('resnet50',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
+                self.base = aligned_net_v1('resnet50',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
             elif backbone == 'aligned_resnet101_abd':
                 self.base_type = BASE_ALIGNED_RESNET101_ABD
-                self.base = aligned_net('resnet101',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
-                #self.base = aligned_net_v1('resnet101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
+                #self.base = aligned_net('resnet101',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
+                self.base = aligned_net_v1('resnet101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
             elif backbone == 'aligned_resnext101_abd':
                 self.base_type = BASE_ALIGNED_RESNEXT101_ABD
-                self.base = aligned_net('resnext101', last_stride, with_ibn, gcb, stage_with_gcb,aligned=True, with_abd=True)
+                #self.base = aligned_net('resnext101', last_stride, with_ibn, gcb, stage_with_gcb,aligned=True, with_abd=True)
+                self.base = aligned_net_v1('resnext101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True,
+                                           with_abd=True)
             ########################################
             ## aligned + mpncov
             elif backbone == 'aligned_mpncov_resnet50':
@@ -120,15 +122,18 @@ class Baseline(nn.Module):
         self.classifier.apply(weights_init_classifier)
 
     def forward(self, x, label=None):
+
         if self.base_type in [BASE_MPNCOV_RESNET101]:
             global_feat = self.base(x)  # mpncov doesnot need self.gap to reduce features
-        elif self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
+        elif self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101,
+                                BASE_ALIGNED_RESNEXT50,
                                 BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
-                                BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101, BASE_ALIGNED_MPNCOV_RESNEXT101]:
+                                BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101,
+                                BASE_ALIGNED_MPNCOV_RESNEXT101]:
             global_feat, local_feat = self.base(x)
-            #local_feat = local_feat.view(local_feat.shape[0], -1)
-            #print('1 global_feat', global_feat.size()) # torch.Size([31, 2048])
-            #print('1 local_feat', local_feat.size())   # train: local_feat torch.Size([32, 128, 16]) / test: torch.Size([64, 2048, 16])
+            # local_feat = local_feat.view(local_feat.shape[0], -1)
+            # print('1 global_feat', global_feat.size()) # torch.Size([31, 2048])
+            # print('1 local_feat', local_feat.size())   # train: local_feat torch.Size([32, 128, 16]) / test: torch.Size([64, 2048, 16])
         elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
             if self.training:
                 global_feat, local_feat, f_dict = self.base(x)
@@ -139,10 +144,9 @@ class Baseline(nn.Module):
 
         global_feat = global_feat.view(global_feat.shape[0], -1)  # flatten to (bs, 2048)
 
-        feat = self.bottleneck(global_feat)  # normalize for angular softmax
+        bn_feat = self.bottleneck(global_feat)  # normalize for angular softmax
         if self.training:
-            cls_score = self.classifier(feat)
-            # cls_score = self.classifier(feat, label)
+            cls_score = self.classifier(bn_feat)
             if self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
                                   BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
                                   BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101, BASE_ALIGNED_MPNCOV_RESNEXT101]:
@@ -154,13 +158,14 @@ class Baseline(nn.Module):
         else:
             if self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
                                   BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
-                                  BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD,
                                   BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101,
                                   BASE_ALIGNED_MPNCOV_RESNEXT101
                                   ]:
-                return global_feat, local_feat
+                return global_feat, local_feat  #非abd时返回 g + bn_l
+            elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
+                return bn_feat, local_feat # abd时返回 bn_g + l
             else:
-                return feat
+                return bn_feat # 几乎不使用
 
     def load_params_wo_fc(self, state_dict):
         # new_state_dict = {}

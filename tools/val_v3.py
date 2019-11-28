@@ -14,7 +14,7 @@ from torch.backends import cudnn
 sys.path.append('.')
 from config import cfg
 from data import get_test_dataloader
-from engine.inference_rerank import inference, inference_aligned, inference_flipped
+from engine.deprecated.inference_rerank_bak import inference_aligned_flipped
 from modeling import build_model_v3
 from utils.logger import setup_logger
 
@@ -57,7 +57,7 @@ def main():
 
     #inference(cfg, model, test_dataloader, num_query)
     #inference_aligned(cfg, model, test_dataloader, num_query) # using flipped image
-    inference_flipped(cfg, model, test_dataloader, num_query)
+    inference_aligned_flipped(cfg, model, test_dataloader, num_query)
 
 
 if __name__ == '__main__':

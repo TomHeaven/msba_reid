@@ -8,4 +8,4 @@ from .resnet import *
 from .mpncovresnet import mpncovresnet101
 
 from .aligned_net import *
-from .aligned_net_v1 import aligned_net as aligned_net_v1
+#from .aligned_net_v1 import aligned_net as aligned_net_v1

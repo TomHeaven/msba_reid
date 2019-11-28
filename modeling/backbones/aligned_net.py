@@ -71,14 +71,19 @@ class Aligned_Net(nn.Module):
             x, f_dict = x
 
         if self.aligned:
+            if not self.training:
+                lf = self.horizon_pool(x)
+                lf = lf.view(lf.size()[0:3])
+                lf = lf / torch.pow(lf, 2).sum(dim=1, keepdim=True).clamp(min=1e-12).sqrt()
+
             #print('1 x', x.size())  # torch.Size([32, 2048, 16, 8])
-            lf = self.bn(x)
-            lf = self.relu(lf)
-            lf = self.horizon_pool(lf)
-            lf = self.conv1(lf)
-        if self.aligned or not self.training:
-            lf = lf.view(lf.size()[0:3])
-            lf = lf / torch.pow(lf, 2).sum(dim=1, keepdim=True).clamp(min=1e-12).sqrt()
+            bn_lf = self.bn(x)
+            bn_lf = self.relu(bn_lf)
+            bn_lf = self.horizon_pool(bn_lf)
+            bn_lf = self.conv1(bn_lf)
+
+            bn_lf = bn_lf.view(bn_lf.size()[0:3])
+            bn_lf = bn_lf / torch.pow(bn_lf, 2).sum(dim=1, keepdim=True).clamp(min=1e-12).sqrt()
 
         if self.with_mpncov:
             x = self.layer_reduce(x)
@@ -99,16 +104,16 @@ class Aligned_Net(nn.Module):
 
         # 非训练，直接返回特征
         if not self.training:
-            return f, lf
+            return f, lf, bn_lf
 
         # 训练
         if self.with_abd:
             if self.aligned:
-                return f, lf, f_dict
+                return f, bn_lf, f_dict
             return f, f_dict
         else:
             if self.aligned:
-                return f, lf
+                return f, bn_lf
             return f
 
     def load_pretrain(self, model_path=''):

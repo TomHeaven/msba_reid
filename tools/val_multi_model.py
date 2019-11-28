@@ -13,7 +13,7 @@ import numpy as np
 sys.path.append('.')
 from config import cfg
 from data import get_test_dataloader
-from engine.inference_rerank import inference_with_distmat
+from engine.inference import inference_with_distmat
 from utils.logger import setup_logger
 
 
@@ -47,71 +47,32 @@ def main():
 
     test_dataloader, num_query, _ = get_test_dataloader(cfg, test_phase=False)
 
+    distmat_paths = [cfg.TEST.DISTMAT1, cfg.TEST.DISTMAT2, cfg.TEST.DISTMAT3,
+                     cfg.TEST.DISTMAT4, cfg.TEST.DISTMAT5, cfg.TEST.DISTMAT6]
     # 加载dist_mats
     dist_mats = []
 
     cnt = 0
-    if os.path.isfile(cfg.TEST.DISTMAT1):
-        f = h5py.File(cfg.TEST.DISTMAT1, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
+    thresh = 2
+    for distmat_path in distmat_paths:
+        if os.path.isfile(distmat_path):
+            f = h5py.File(distmat_path, 'r')
+            #mat = f['dist_mat'][()]
 
-    if os.path.isfile(cfg.TEST.DISTMAT2):
-        f = h5py.File(cfg.TEST.DISTMAT2, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
+            if cnt < thresh:
+                mat = f['dist_mat1'][()]
+            else:
+                mat = f['dist_mat'][()]
 
-    if os.path.isfile(cfg.TEST.DISTMAT3):
-        f = h5py.File(cfg.TEST.DISTMAT3, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT4):
-        f = h5py.File(cfg.TEST.DISTMAT4, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT5):
-        f = h5py.File(cfg.TEST.DISTMAT5, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT6):
-        f = h5py.File(cfg.TEST.DISTMAT6, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
+            mat = mat[np.newaxis, ...]
+            dist_mats.append(mat)
+            f.close()
+            cnt += 1
 
     logger.info(f'Average {cnt} results')
     dist_mat = np.concatenate(dist_mats, axis=0).mean(axis=0)
 
-    inference_with_distmat(test_dataloader, num_query, dist_mat)
-
-
-
-
-
-
-
-
-
+    inference_with_distmat(cfg, test_dataloader, num_query, dist_mat)
 
 if __name__ == '__main__':
     main()

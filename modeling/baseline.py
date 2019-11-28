@@ -81,15 +81,15 @@ class Baseline(nn.Module):
             ## 加 abd
             elif backbone == 'aligned_resnet50_abd':
                 self.base_type = BASE_ALIGNED_RESNET50_ABD
-                self.base = aligned_net_v1('resnet50',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
+                self.base = aligned_net('resnet50',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
             elif backbone == 'aligned_resnet101_abd':
                 self.base_type = BASE_ALIGNED_RESNET101_ABD
                 #self.base = aligned_net('resnet101',last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
-                self.base = aligned_net_v1('resnet101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
+                self.base = aligned_net('resnet101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True, with_abd=True)
             elif backbone == 'aligned_resnext101_abd':
                 self.base_type = BASE_ALIGNED_RESNEXT101_ABD
                 #self.base = aligned_net('resnext101', last_stride, with_ibn, gcb, stage_with_gcb,aligned=True, with_abd=True)
-                self.base = aligned_net_v1('resnext101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True,
+                self.base = aligned_net('resnext101', last_stride, with_ibn, gcb, stage_with_gcb, aligned=True,
                                            with_abd=True)
             ########################################
             ## aligned + mpncov
@@ -124,48 +124,61 @@ class Baseline(nn.Module):
     def forward(self, x, label=None):
 
         if self.base_type in [BASE_MPNCOV_RESNET101]:
+        ### global only (mpncov)
             global_feat = self.base(x)  # mpncov doesnot need self.gap to reduce features
         elif self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101,
+        ### aligned
                                 BASE_ALIGNED_RESNEXT50,
                                 BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
                                 BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101,
                                 BASE_ALIGNED_MPNCOV_RESNEXT101]:
-            global_feat, local_feat = self.base(x)
-            # local_feat = local_feat.view(local_feat.shape[0], -1)
-            # print('1 global_feat', global_feat.size()) # torch.Size([31, 2048])
-            # print('1 local_feat', local_feat.size())   # train: local_feat torch.Size([32, 128, 16]) / test: torch.Size([64, 2048, 16])
-        elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
             if self.training:
-                global_feat, local_feat, f_dict = self.base(x)
+                global_feat, bn_local_feat = self.base(x)
             else:
-                global_feat, local_feat = self.base(x)
+                global_feat, local_feat, bn_local_feat = self.base(x)
+
+            # print('1 global_feat', global_feat.size()) # torch.Size([31, 2048])
+            # train: local_feat torch.Size([32, 128, 16]) / test: bn_local_feat torch.Size([64, 2048, 16])
+            # print('1 bn_local_feat', bn_local_feat.size())
+        elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
+        ### aligned abd
+            if self.training:
+                global_feat, bn_local_feat, f_dict = self.base(x)
+            else:
+                global_feat, local_feat, bn_local_feat = self.base(x)
         else:
+        ### global only
             global_feat = self.gap(self.base(x))  # (b, 2048, 1, 1)
 
         global_feat = global_feat.view(global_feat.shape[0], -1)  # flatten to (bs, 2048)
 
-        bn_feat = self.bottleneck(global_feat)  # normalize for angular softmax
+        bn_global_feat = self.bottleneck(global_feat)  # normalize for angular softmax
+
         if self.training:
-            cls_score = self.classifier(bn_feat)
+            cls_score = self.classifier(bn_global_feat)
             if self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
                                   BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
                                   BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101, BASE_ALIGNED_MPNCOV_RESNEXT101]:
-                return cls_score, global_feat, local_feat
+                ### aligned
+                return cls_score, global_feat, bn_local_feat
             elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
-                return cls_score, global_feat, local_feat, f_dict
+                ### aligned abd
+                return cls_score, global_feat, bn_local_feat, f_dict
             else:
+                ### global only
                 return cls_score, global_feat
         else:
-            if self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
+            if self.base_type in [BASE_ALIGNED_RESNET50,  BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
                                   BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
                                   BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101,
-                                  BASE_ALIGNED_MPNCOV_RESNEXT101
+                                  BASE_ALIGNED_MPNCOV_RESNEXT101,
+                                  BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD
                                   ]:
-                return global_feat, local_feat  #非abd时返回 g + bn_l
-            elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
-                return bn_feat, local_feat # abd时返回 bn_g + l
+                ### aligned (+-abd)
+                return global_feat, bn_global_feat, local_feat, bn_local_feat
             else:
-                return bn_feat # 几乎不使用
+                ### global only
+                return bn_global_feat # 几乎不使用
 
     def load_params_wo_fc(self, state_dict):
         # new_state_dict = {}

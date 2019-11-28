@@ -13,6 +13,8 @@ from data.prefetcher import data_prefetcher
 from utils.re_ranking import re_ranking
 from utils.distance import low_memory_local_dist, local_dist
 
+from .inference import compute_distmat
+
 
 def inference(
         cfg,
@@ -104,7 +106,7 @@ def inference(
         return score, index
 
 
-def inference_flipped(
+def inference_flipped_deprecated(
         cfg,
         model,
         test_dataloader,
@@ -208,4 +210,58 @@ def inference_flipped(
         indices.append(index)
         dist_mats.append(distmat)
     return scores, indices, dist_mats
+
+
+
+############
+## Using
+def inference_aligned_flipped(
+        cfg,
+        model,
+        test_dataloader,
+        num_query
+):
+    logger = logging.getLogger("reid_baseline.inference")
+    logger.info("Start inferencing aligned with flipping")
+
+    model.eval()
+
+    pids, camids = [], []
+    gfs, bn_gfs, lfs, bn_lfs = [], [], [], []
+    gfs_flipped, bn_gfs_flipped, lfs_flipped, bn_lfs_flipped = [], [], [], []
+
+    test_prefetcher = data_prefetcher(test_dataloader, cfg)
+    batch = test_prefetcher.next()
+    while batch[0] is not None:
+        img, pid, camid = batch
+        with torch.no_grad():
+            gf, bn_gf, lf, bn_lf = model(img)
+            gff, bn_gff, lff, bn_lff = model(torch.flip(img, [3]))
+
+        # 4 features
+        gfs.append(gf.cpu())
+        bn_gfs.append(bn_gf.cpu())
+        lfs.append(lf.cpu())
+        bn_lfs.append(bn_lf.cpu())
+        # 4 features flipped
+        gfs_flipped.append(gff.cpu())
+        bn_gfs_flipped.append(bn_gff.cpu())
+        lfs_flipped.append(lff.cpu())
+        bn_lfs_flipped.append(bn_lff.cpu())
+
+        pids.extend(pid.cpu().numpy())
+        camids.extend(np.asarray(camid))
+
+        batch = test_prefetcher.next()
+
+    logger.info("Computing distmat with gf + bn_lf")
+    distmat1 = compute_distmat(cfg, num_query, pids, camids, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95)
+    logger.info("Computing distmat with bn_gf + lf")
+    distmat2 = compute_distmat(cfg, num_query, pids, camids, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45)
+    distmat = (distmat1 + distmat2) / 2
+
+    score = distmat
+    index = np.argsort(score, axis=1)  # from small to large
+
+    return distmat, index, distmat1, distmat2
 

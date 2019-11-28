@@ -48,57 +48,21 @@ def main():
 
     test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=True)
 
+
+    distmat_paths = [cfg.TEST.DISTMAT1, cfg.TEST.DISTMAT2, cfg.TEST.DISTMAT3,
+                     cfg.TEST.DISTMAT4, cfg.TEST.DISTMAT5, cfg.TEST.DISTMAT6]
     # 加载dist_mats
     dist_mats = []
 
     cnt = 0
-    if os.path.isfile(cfg.TEST.DISTMAT1):
-        f = h5py.File(cfg.TEST.DISTMAT1, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT2):
-        f = h5py.File(cfg.TEST.DISTMAT2, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT3):
-        f = h5py.File(cfg.TEST.DISTMAT3, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT4):
-        f = h5py.File(cfg.TEST.DISTMAT4, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT5):
-        f = h5py.File(cfg.TEST.DISTMAT5, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
-
-    if os.path.isfile(cfg.TEST.DISTMAT6):
-        f = h5py.File(cfg.TEST.DISTMAT6, 'r')
-        mat = f['dist_mat'][()]
-        mat = mat[np.newaxis, ...]
-        dist_mats.append(mat)
-        f.close()
-        cnt += 1
+    for distmat_path in distmat_paths:
+        if os.path.isfile(distmat_path):
+            f = h5py.File(distmat_path, 'r')
+            mat = f['dist_mat1'][()]
+            mat = mat[np.newaxis, ...]
+            dist_mats.append(mat)
+            f.close()
+            cnt += 1
 
     dist_mat = np.concatenate(dist_mats, axis=0).mean(axis=0)
     score = dist_mat
