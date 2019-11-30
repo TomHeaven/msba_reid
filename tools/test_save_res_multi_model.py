@@ -50,7 +50,13 @@ def main():
 
 
     distmat_paths = [cfg.TEST.DISTMAT1, cfg.TEST.DISTMAT2, cfg.TEST.DISTMAT3,
-                     cfg.TEST.DISTMAT4, cfg.TEST.DISTMAT5, cfg.TEST.DISTMAT6]
+                     cfg.TEST.DISTMAT4, cfg.TEST.DISTMAT5, cfg.TEST.DISTMAT6,
+                     cfg.TEST.DISTMAT7, cfg.TEST.DISTMAT8, cfg.TEST.DISTMAT9,
+                     cfg.TEST.DISTMAT10, cfg.TEST.DISTMAT11, cfg.TEST.DISTMAT12,
+                     cfg.TEST.DISTMAT13, cfg.TEST.DISTMAT14, cfg.TEST.DISTMAT15,
+                     cfg.TEST.DISTMAT16, cfg.TEST.DISTMAT17, cfg.TEST.DISTMAT18,
+
+                     ]
     # 加载dist_mats
     dist_mats = []
 
@@ -58,11 +64,23 @@ def main():
     for distmat_path in distmat_paths:
         if os.path.isfile(distmat_path):
             f = h5py.File(distmat_path, 'r')
-            mat = f['dist_mat1'][()]
+
+            if distmat_path.endswith('test_aligned_resnet101_ibn_abd_xiao_20191129_021601_4f.h5'):
+                logger.info('Xiao model detected!')
+                mat = f['dist_mat2'][()]
+            else:
+                mat = f['dist_mat'][()]
+
+                # xiao 权重分开了 * 0.5
+                if cnt >= 10:
+                    mat *= 0.5
+
             mat = mat[np.newaxis, ...]
             dist_mats.append(mat)
             f.close()
             cnt += 1
+        else:
+            logger.info(f'Invalid checkpoint path {distmat_path}')
 
     dist_mat = np.concatenate(dist_mats, axis=0).mean(axis=0)
     score = dist_mat

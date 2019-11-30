@@ -48,50 +48,43 @@ def preprocess_train(data_dir, list_file):
 
 
 
-def preprocess_query(data_dir, list_file):
-    list_file = os.path.join(data_dir, list_file)
-    with open(list_file, 'r') as f:
-        train_list = f.readlines()
-        #print('train_list', train_list)
+def preprocess_query(data_dir):
+    img_files = [fname for fname in os.listdir(os.path.join(data_dir, 'query_b')) if fname.endswith('.png')]
 
-    if not os.path.isdir(os.path.join(data_dir, 'mygallery_a')):
-        os.mkdir(os.path.join(data_dir, 'mygallery'))
+    #if not os.path.isdir(os.path.join(data_dir, 'myquery')):
+    #    os.mkdir(os.path.join(data_dir, 'myquery'))
 
+    for person_id, fname in enumerate(tqdm.tqdm(img_files)):
+        img_id, img_ext = os.path.splitext(fname)
 
-    for line in tqdm.tqdm(train_list):
-        img_path = line.split('/')[1].split(' ')[0]
-        img_id, img_ext = os.path.splitext(line.split('/')[1].split(' ')[0])
-        person_id = line.split(' ')[1][:-1]
-
-        out_image_name = person_id + '_' +  img_id + img_ext
-        #print('img_path', img_path, 'out_image_name', out_image_name)
+        out_image_name = str(person_id) + '_' + img_id + img_ext
+        # print('img_path', img_path, 'out_image_name', out_image_name)
         folder = 'myquery'
 
         out_image_path = os.path.join(data_dir, folder, out_image_name)
         if not os.path.isdir(os.path.join(data_dir, folder)):
             os.mkdir(os.path.join(data_dir, folder))
-
-        shutil.copy(os.path.join(data_dir, 'query_a', img_path), out_image_path)
+        shutil.copy(os.path.join(data_dir, 'query_b', fname), out_image_path)
 
 
 def preprocess_gallery(data_dir):
-    img_files = [fname for fname in os.listdir(os.path.join(data_dir, 'gallery_a')) if fname.endswith('.png')]
+    img_files = [fname for fname in os.listdir(os.path.join(data_dir, 'gallery_b')) if fname.endswith('.png')]
 
-    if not os.path.isdir(os.path.join(data_dir, 'mygallery_a')):
-        os.mkdir(os.path.join(data_dir, 'mygallery_a'))
+    if not os.path.isdir(os.path.join(data_dir, 'mygallery_b')):
+        os.mkdir(os.path.join(data_dir, 'mygallery_b'))
 
     for person_id, fname in enumerate(tqdm.tqdm(img_files)):
         img_id, img_ext = os.path.splitext(fname)
 
         out_image_name = str(person_id) + '_' +  img_id + img_ext
         #print('img_path', img_path, 'out_image_name', out_image_name)
-        folder = 'mygallery_a'
+        folder = 'mygallery_b'
 
         out_image_path = os.path.join(data_dir, folder, out_image_name)
         if not os.path.isdir(os.path.join(data_dir, folder)):
             os.mkdir(os.path.join(data_dir, folder))
 
-        shutil.copy(os.path.join(data_dir, 'gallery_a', fname), out_image_path)
+        shutil.copy(os.path.join(data_dir, 'gallery_b', fname), out_image_path)
 
 
 def split_myval(data_dir):
@@ -144,27 +137,17 @@ def split_myval(data_dir):
     print('query', len(query), query)
     print('gallery', len(gallery), gallery)
 
-
-
-
-
-
-
-
-
-
-
 if __name__ == '__main__':
     data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛训练集'
     list_file = 'train_list.txt'
     #preprocess_train(data_dir, list_file)
     #split_myval(data_dir)
 
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛A榜测试集'
-    list_file = 'query_a_list.txt'
-    preprocess_query(data_dir, list_file)
+    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛B榜测试集'
+    preprocess_query(data_dir)
 
 
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛A榜测试集'
-    preprocess_gallery(data_dir)
+    #data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛A榜测试集'
+    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛B榜测试集'
+    #preprocess_gallery(data_dir)
 

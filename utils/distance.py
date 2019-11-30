@@ -219,7 +219,7 @@ def low_memory_matrix_op(
 def low_memory_local_dist(x, y, aligned=True):
     print('Computing local distance...')
 
-    slice_size = 200 # old
+    slice_size = 200 # old 200
     x_num_splits = int(len(x) / slice_size) + 1
     y_num_splits = int(len(y) / slice_size) + 1
     z = low_memory_matrix_op(local_dist, x, y, 0, 0, x_num_splits, y_num_splits, verbose=True, aligned=aligned)

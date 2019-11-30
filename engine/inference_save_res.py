@@ -172,6 +172,7 @@ def inference_flipped_deprecated(
         logger.info("--------computing local features ...--------")
         lqf = lqf.permute(0, 2, 1)
         lgf = lgf.permute(0, 2, 1)
+
         local_distmat = low_memory_local_dist(lqf.numpy(), lgf.numpy(), aligned=True)
         local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
         local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
@@ -256,6 +257,7 @@ def inference_aligned_flipped(
 
     logger.info("Computing distmat with gf + bn_lf")
     distmat1 = compute_distmat(cfg, num_query, pids, camids, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95)
+
     logger.info("Computing distmat with bn_gf + lf")
     distmat2 = compute_distmat(cfg, num_query, pids, camids, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45)
     distmat = (distmat1 + distmat2) / 2

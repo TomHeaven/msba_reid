@@ -147,6 +147,18 @@ _C.TEST.DISTMAT3 = ""
 _C.TEST.DISTMAT4 = ""
 _C.TEST.DISTMAT5 = ""
 _C.TEST.DISTMAT6 = ""
+_C.TEST.DISTMAT7 = ""
+_C.TEST.DISTMAT8 = ""
+_C.TEST.DISTMAT9 = ""
+_C.TEST.DISTMAT10 = ""
+_C.TEST.DISTMAT11 = ""
+_C.TEST.DISTMAT12 = ""
+_C.TEST.DISTMAT13 = ""
+_C.TEST.DISTMAT14 = ""
+_C.TEST.DISTMAT15 = ""
+_C.TEST.DISTMAT16 = ""
+_C.TEST.DISTMAT17 = ""
+_C.TEST.DISTMAT18 = ""
 
 # ---------------------------------------------------------------------------- #
 # Misc options

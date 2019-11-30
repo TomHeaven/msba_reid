@@ -24,7 +24,7 @@ class Competition1910(ImageDataset):
     # images: 12936 (train) + 3368 (query) + 15913 (gallery)
     """
     dataset_dir = '初赛训练集'
-    test_data_dir = '初赛A榜测试集'
+    test_data_dir = '初赛B榜测试集'
 
     def __init__(self, root, test_phase=False, **kwargs):
         #super(Competition1910, self).__init__()
@@ -36,7 +36,7 @@ class Competition1910(ImageDataset):
         else:
             self.train_dir = osp.join(self.dataset_dir, 'mytrain')
             self.query_dir = osp.join(root, self.test_data_dir, 'myquery')
-            self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery_a')
+            self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery_b')
 
         self._check_before_run()
 
@@ -44,18 +44,8 @@ class Competition1910(ImageDataset):
         query = self._process_dir(self.query_dir, relabel=False)
         gallery = self._process_dir(self.gallery_dir, relabel=False)
 
-        #self.train = train
-        #self.query = query
-        #self.gallery = gallery
-
-        #if verbose:
-        #    print("=> Competition1910 loaded")
-        #    self.show_summary()
-
-        #self.num_train_pids, self.num_train_imgs, self.num_train_cams = self.get_imagedata_info(self.train)
-        #self.num_query_pids, self.num_query_imgs, self.num_query_cams = self.get_imagedata_info(self.query)
-        #self.num_gallery_pids, self.num_gallery_imgs, self.num_gallery_cams = self.get_imagedata_info(self.gallery)
-
+        # DEBUG
+        #query = query[:2]
         super(Competition1910, self).__init__(train, query, gallery, **kwargs)
 
     def _check_before_run(self):

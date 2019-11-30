@@ -53,7 +53,7 @@ def main():
     dist_mats = []
 
     cnt = 0
-    thresh = 2
+    thresh = 3
     for distmat_path in distmat_paths:
         if os.path.isfile(distmat_path):
             f = h5py.File(distmat_path, 'r')
@@ -62,7 +62,7 @@ def main():
             if cnt < thresh:
                 mat = f['dist_mat1'][()]
             else:
-                mat = f['dist_mat'][()]
+                mat = f['dist_mat1'][()]
 
             mat = mat[np.newaxis, ...]
             dist_mats.append(mat)
