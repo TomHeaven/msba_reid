@@ -140,8 +140,8 @@ def split_myval(data_dir):
 if __name__ == '__main__':
     data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛训练集'
     list_file = 'train_list.txt'
-    #preprocess_train(data_dir, list_file)
-    #split_myval(data_dir)
+    preprocess_train(data_dir, list_file)
+    split_myval(data_dir)
 
     data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛B榜测试集'
     preprocess_query(data_dir)
@@ -149,5 +149,5 @@ if __name__ == '__main__':
 
     #data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛A榜测试集'
     data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛B榜测试集'
-    #preprocess_gallery(data_dir)
+    preprocess_gallery(data_dir)
 
