@@ -17,7 +17,7 @@ from torch.backends import cudnn
 sys.path.append('.')
 from config import cfg
 from data import get_test_dataloader
-from engine.inference_save_res import inference_aligned_flipped
+from engine.inference_save_res import inference_aligned_flipped, inference_flipped
 from modeling import build_model
 from utils.logger import setup_logger
 import h5py
@@ -58,20 +58,8 @@ def main():
 
     test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=True)
 
-    use_local_feature = False
-    use_rerank = True
-    use_cross_feature = True
+    distmat, index, distmat1, distmat2 = inference_aligned_flipped(cfg, model, test_dataloader, num_query)
 
-    distmat, index, distmat1, distmat2 = inference_aligned_flipped(cfg, model, test_dataloader, num_query,
-                                                                   use_local_feature, use_rerank, use_cross_feature)
-
-    suffix = 'flip'
-    if use_local_feature:
-        suffix += '_aligned'
-    if use_rerank:
-        suffix += '_rerank'
-    if use_cross_feature:
-        suffix += '_cross'
 
 
     # saving results
@@ -92,16 +80,13 @@ def main():
 
         # 写入结果
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-        json.dump(results, open('submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix), 'w'))
+        json.dump(results, open('submit/reid_%s_%s_4f.json' % (cfg.MODEL.NAME, strtime), 'w'))
 
         # saving dist_mats
-        f = h5py.File('/Volumes/Data/比赛/行人重识别2019/dist_mats/test_%s_%s_%s.h5' % (cfg.MODEL.NAME, strtime, suffix), 'w')
+        f = h5py.File('dist_mats/test_%s_%s_4f.h5' % (cfg.MODEL.NAME, strtime), 'w')
         f.create_dataset('dist_mat', data=distmat, compression='gzip')
-
-        if distmat1 is not None:
-            f.create_dataset('dist_mat1', data=distmat1, compression='gzip')
-        if distmat2 is not None:
-            f.create_dataset('dist_mat2', data=distmat2, compression='gzip')
+        f.create_dataset('dist_mat1', data=distmat1, compression='gzip')
+        f.create_dataset('dist_mat2', data=distmat2, compression='gzip')
         f.close()
 
 if __name__ == '__main__':

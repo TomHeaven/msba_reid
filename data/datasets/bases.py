@@ -216,6 +216,7 @@ class ImageDataset(Dataset):
         super(ImageDataset, self).__init__(train, query, gallery, **kwargs)
         self.preload_image = preload_image
         if self.preload_image:
+            print('=> Pre-loading images to memory ...')
             self.imgs = {}
             for i in range(self.__len__()):
                 img_path, pid, camid = self.data[i]

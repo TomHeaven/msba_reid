@@ -10,7 +10,7 @@ import numpy as np
 import torch.nn.functional as F
 from data.datasets.eval_reid import evaluate
 from data.prefetcher import data_prefetcher
-from utils.re_ranking import re_ranking, mem_saving_argsort
+from utils.re_ranking import re_ranking
 from utils.distance import low_memory_local_dist, local_dist
 
 from .inference import compute_distmat
@@ -111,8 +111,8 @@ def inference_flipped_deprecated(
         model,
         test_dataloader,
         num_query,
-        theta = 0.95,
-        use_local_feature=False# 是否使用local特征
+        thetas,
+        use_local_feature=True # 是否使用local特征
 ):
     logger = logging.getLogger("reid_baseline.inference")
     logger.info("Start inferencing")
@@ -126,8 +126,8 @@ def inference_flipped_deprecated(
         img, pid, camid = batch
 
         with torch.no_grad():
-            g_feat, bn_gf, lf, l_feat = model(img)
-            gf_feat, bn_gff, lff, lf_feat = model(torch.flip(img, [3]))
+            g_feat, l_feat = model(img)
+            gf_feat, lf_feat = model(torch.flip(img, [3]))
 
         g_feats.append(g_feat.data.cpu())
         l_feats.append(l_feat.data.cpu())
@@ -196,8 +196,7 @@ def inference_flipped_deprecated(
         local_dist_flip = None
 
     logger.info("use reranking")
-    #for theta in thetas:
-    if True:
+    for theta in thetas:
         distmat = re_ranking(qf, gf, k1=6, k2=2, lambda_value=0.3, local_distmat=local_dist, theta_value=theta,
                              only_local=False)
         distmat_flip = re_ranking(qff, gff, k1=6, k2=2, lambda_value=0.3, local_distmat=local_dist_flip, theta_value=theta,
@@ -221,10 +220,7 @@ def inference_aligned_flipped(
         cfg,
         model,
         test_dataloader,
-        num_query,
-        use_local_feature,
-        use_rerank,
-        use_cross_feature
+        num_query
 ):
     logger = logging.getLogger("reid_baseline.inference")
     logger.info("Start inferencing aligned with flipping")
@@ -246,41 +242,28 @@ def inference_aligned_flipped(
         # 4 features
         gfs.append(gf.cpu())
         bn_gfs.append(bn_gf.cpu())
-
-        if use_local_feature:
-            lfs.append(lf.cpu())
-            bn_lfs.append(bn_lf.cpu())
-
+        lfs.append(lf.cpu())
+        bn_lfs.append(bn_lf.cpu())
         # 4 features flipped
         gfs_flipped.append(gff.cpu())
         bn_gfs_flipped.append(bn_gff.cpu())
-
-        if use_local_feature:
-            lfs_flipped.append(lff.cpu())
-            bn_lfs_flipped.append(bn_lff.cpu())
+        lfs_flipped.append(lff.cpu())
+        bn_lfs_flipped.append(bn_lff.cpu())
 
         pids.extend(pid.cpu().numpy())
         camids.extend(np.asarray(camid))
 
         batch = test_prefetcher.next()
 
-    distmat1 = distmat2 = None
-    logger.info(f"use_cross_feature = {use_cross_feature}, use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
-    if use_cross_feature:
-        logger.info("Computing distmat with bn_gf (+ lf)")
-        distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
-                               use_local_feature=use_local_feature, use_rerank=use_rerank)
-        distmat = distmat2
-        #distmat = (distmat1 + distmat2) / 2
-    else:
-        logger.info("Computing distmat with gf (+ bn_lf)")
-        distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
-                                   use_local_feature=use_local_feature, use_rerank=use_rerank)
-        distmat = distmat1
+    logger.info("Computing distmat with gf + bn_lf")
+    distmat1 = compute_distmat(cfg, num_query, pids, camids, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95)
+
+    logger.info("Computing distmat with bn_gf + lf")
+    distmat2 = compute_distmat(cfg, num_query, pids, camids, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45)
+    distmat = (distmat1 + distmat2) / 2
 
     score = distmat
     index = np.argsort(score, axis=1)  # from small to large
-    #index = mem_saving_argsort(score) # better for large matrix ?
 
     return distmat, index, distmat1, distmat2
 

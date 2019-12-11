@@ -23,8 +23,8 @@ class Competition1910(ImageDataset):
     # identities: 1501 (+1 for background)
     # images: 12936 (train) + 3368 (query) + 15913 (gallery)
     """
-    dataset_dir = '初赛训练集'
-    test_data_dir = '初赛B榜测试集'
+    dataset_dir = '复赛'
+    test_data_dir = '复赛/测试集A'
 
     def __init__(self, root, test_phase=False, **kwargs):
         #super(Competition1910, self).__init__()
@@ -36,11 +36,16 @@ class Competition1910(ImageDataset):
         else:
             self.train_dir = osp.join(self.dataset_dir, 'mytrain')
             self.query_dir = osp.join(root, self.test_data_dir, 'myquery')
-            self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery_b')
+            self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery')
 
         self._check_before_run()
 
-        train = self._process_dir(self.train_dir, relabel=True)
+        if not test_phase:
+            train = self._process_dir(self.train_dir, relabel=True)
+        else:
+            ## place holder, not used
+            train = self._process_dir(self.query_dir, relabel=False)
+
         query = self._process_dir(self.query_dir, relabel=False)
         gallery = self._process_dir(self.gallery_dir, relabel=False)
 

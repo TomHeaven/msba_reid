@@ -60,11 +60,19 @@ _C.INPUT.FLIP_PROB = 0.5
 #_C.INPUT.PIXEL_MEAN = [0.406, 0.456, 0.485] # 原来训练的模型使用此参数(R<G<B)
 #_C.INPUT.PIXEL_STD = [0.225, 0.224, 0.229]  # 原来训练的模型使用此参数(RGB)
 
-# 新模型直接使用BGR参数。
+# 新模型直接使用BGR参数。 （初赛）
 # Values to be used for image normalization
-_C.INPUT.PIXEL_MEAN = [0.213, 0.183, 0.097] # in order B>G>R
+#_C.INPUT.PIXEL_MEAN = [0.213, 0.183, 0.097] # in order B>G>R
 # Values to be used for image normalization
-_C.INPUT.PIXEL_STD = [0.221, 0.165, 0.176]  # in order BGR
+#_C.INPUT.PIXEL_STD = [0.221, 0.165, 0.176]  # in order BGR
+
+
+# 新模型直接使用BGR参数。（复赛）
+# Values to be used for image normalization
+_C.INPUT.PIXEL_MEAN = [0.2493, 0.2129, 0.167] # in order B>G>R
+# Values to be used for image normalization
+_C.INPUT.PIXEL_STD = [0.2679, 0.2071, 0.2105]  # in order BGR
+
 ##########################################################
 # Value of padding size
 _C.INPUT.DO_PAD = True
@@ -87,6 +95,7 @@ _C.DATASETS.NAMES = ("market1501",)
 # List of the dataset names for testing
 _C.DATASETS.TEST_NAMES = "market1501"
 _C.DATASETS.ROOT_DIR = ('/Volumes/Data/比赛/行人重识别2019/data')
+_C.DATASETS.PRELOAD_IMAGE = True   # 是否将图像加载到内存
 
 # -----------------------------------------------------------------------------
 # DataLoader

@@ -24,8 +24,8 @@ def get_dataloader(cfg):
     print('prepare training set ...')
     train_img_items = list()
     for d in cfg.DATASETS.NAMES:
-        # dataset = init_dataset(d, combineall=True)
-        dataset = init_dataset(d, root=cfg.DATASETS.ROOT_DIR)
+        # dataset = init_dataset(d, root=cfg.DATASETS.ROOT_DIR, ) # original
+        dataset = init_dataset(d, root=cfg.DATASETS.ROOT_DIR, preload_image=cfg.DATASETS.PRELOAD_IMAGE)
         train_img_items.extend(dataset.train)
 
     print('prepare test set ...')

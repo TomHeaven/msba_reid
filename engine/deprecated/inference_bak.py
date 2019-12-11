@@ -313,11 +313,6 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
         feats = F.normalize(feats, p=2, dim=1)
         feats_flipped = F.normalize(feats_flipped, p=2, dim=1)
 
-    ## torch to numpy to save memory in re_ranking
-    #feats = feats.numpy()
-    #feats_flipped = feats_flipped.numpy()
-    ###########
-
     # query
     qf = feats[:num_query]
     qf_flipped = feats_flipped[:num_query]
@@ -340,7 +335,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     ###############
     # 初步筛选gallery中合适的样本 (有问题)
     if False:
-        distmat = -torch.mm(qf, gf.t()).numpy()
+        distmat = -torch.mm(qf, gf.t()).cpu().numpy()
         index = np.argsort(distmat, axis=1)  # from small to large
         new_gallery_index = np.unique(index[:, :top_k].reshape(-1))
         print('new_gallery_index', len(new_gallery_index))
@@ -465,18 +460,17 @@ def inference_aligned_flipped(
     g_pids = np.asarray(pids[num_query:])
     g_camids = np.asarray(camids[num_query:])
 
-    logger.info(f"use_cross_feature = {use_cross_feature}, use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
+    logger.info(f"use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
+    logger.info("Computing distmat with gf + bn_lf")
+    distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
+                               use_local_feature=use_local_feature, use_rerank=use_rerank)
 
     if use_cross_feature:
         logger.info("Computing distmat with bn_gf (+ lf)")
         distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
                                    use_local_feature=use_local_feature, use_rerank=use_rerank)
-        distmat = distmat2
-        #distmat = (distmat1 + distmat2) / 2
+        distmat = (distmat1 + distmat2) / 2
     else:
-        logger.info("Computing distmat with gf + bn_lf")
-        distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
-                                   use_local_feature=use_local_feature, use_rerank=use_rerank)
         distmat = distmat1
         #distmat1 = None
         #distmat2 = None

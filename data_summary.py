@@ -34,7 +34,7 @@ def data_summary(data_dir, list_file):
 
     print('min', values.min(), 'max', values.max(), 'mean', np.around(values.mean(), 2))
 
-    for i in range(10):
+    for i in range(1, 100):
         print('%d counts' % i, (values == i).sum())
 
 
@@ -48,6 +48,10 @@ def get_img_mean_std(data_dir):
     img_paths = [p for p in os.listdir(data_dir) if p.endswith('.png')]
     n = len(img_paths)
 
+    if n > 40000:
+        img_paths = np.random.choice(img_paths, size=40000, replace=False)
+        n = len(img_paths)
+
     imgs = np.zeros((n, 256, 128, 3))
     for i, img_path in enumerate(tqdm.tqdm(img_paths)):
         #print('img_path', img_path)
@@ -59,10 +63,10 @@ def get_img_mean_std(data_dir):
 
 
 if __name__ == '__main__':
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛训练集'
+    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛'
     list_file = 'train_list.txt'
-    data_summary(data_dir, list_file)
+    #data_summary(data_dir, list_file)
 
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/初赛训练集/mytrain'
+    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛/mytrain'
     get_img_mean_std(data_dir)
 
