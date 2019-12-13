@@ -92,7 +92,7 @@ class ReidSystem():
         cfg = self.cfg
         if cfg.MODEL.CHECKPOINT is not '':
             self.load_checkpoint(cfg.MODEL.CHECKPOINT)
-            self.logger.info(f'continue training from checkpoint {cfg.MODEL.CHECKPOINT}')
+            #self.logger.info('continue training')
         ######
 
         self.gpus = os.environ['CUDA_VISIBLE_DEVICES'].split(',')
@@ -127,8 +127,7 @@ class ReidSystem():
             loss_dict = self.aligned_loss_fns(outputs, labels)
         elif self.base_type in [BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
             loss_dict = self.aligned_loss_fns(outputs[:3], labels)
-            #if self.epoch >= 33: # 从第33个Epoch加of
-            if self.epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
+            if self.current_epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
                 loss_dict['of_loss'] = self.of_penalty(outputs[3])
         else:
             loss_dict = self.loss_fns(outputs, labels)
@@ -241,7 +240,6 @@ class ReidSystem():
     def train(self):
         self.on_train_begin()
         for epoch in range(self.start_epoch,self.max_epochs):
-            self.epoch = epoch
             self.on_epoch_begin()
             batch = self.tng_prefetcher.next()
             while batch[0] is not None:
@@ -255,11 +253,11 @@ class ReidSystem():
                     self.best_mAP = metric_dict['mAP']
                 else:
                     is_best = False
-                self.save_checkpoints(is_best)
+                self.save_checkpoint(is_best)
 
             torch.cuda.empty_cache()
 
-    def save_checkpoints(self, is_best):
+    def save_checkpoint(self, is_best):
         if self.use_dp:
             state_dict = self.model.module.state_dict()
         else:
@@ -273,16 +271,16 @@ class ReidSystem():
         opt_dict = {}
         opt_dict['optimizer'] = self.opt
         opt_dict['lr_scheduler'] = self.lr_sched
-        opt_dict['epoch'] = self.epoch
+        opt_dict['epoch'] = self.current_epoch
         torch.save(opt_dict, optpath)
 
         if is_best:
             best_filepath = os.path.join(self.model_save_dir, 'model_best.pth')
             shutil.copyfile(filepath, best_filepath)
 
-    def load_checkpoints(self, checkpoint_path):
+    def load_checkpoint(self, checkpoint_path):
         ## load weights
-        self.logger.info('Loading checkpoints from ', checkpoint_path)
+        self.logger.info('Loading checkpoints from ' + checkpoint_path)
         state_dict = torch.load(checkpoint_path)
         if self.use_dp:
             self.model.module.load_state_dict(state_dict)
@@ -290,45 +288,11 @@ class ReidSystem():
             self.model.load_state_dict(state_dict)
 
         ## load optimizer
-        self.logger.info('Loading checkpoints from', checkpoint_path)
         opt_path = checkpoint_path.replace('model_epoch', 'optimizer_epoch')
+        self.logger.info('Loading optimizer from ' + opt_path)
         opt_dict = torch.load(opt_path)
         self.opt = opt_dict['optimizer']
         self.lr_sched = opt_dict['lr_scheduler']
         self.start_epoch = opt_dict['epoch'] + 1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        opt_dict = torch.load(opt_path)
-        self.opt = opt_dict['optimizer']
-        self.lr_sched = opt_dict['lr_scheduler']
-
-
+        self.current_epoch = opt_dict['epoch'] + 1
+        #print('start_epoch', self.start_epoch)

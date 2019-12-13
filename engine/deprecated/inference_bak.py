@@ -313,6 +313,11 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
         feats = F.normalize(feats, p=2, dim=1)
         feats_flipped = F.normalize(feats_flipped, p=2, dim=1)
 
+    ## torch to numpy to save memory in re_ranking
+    #feats = feats.numpy()
+    #feats_flipped = feats_flipped.numpy()
+    ###########
+
     # query
     qf = feats[:num_query]
     qf_flipped = feats_flipped[:num_query]
@@ -335,7 +340,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     ###############
     # 初步筛选gallery中合适的样本 (有问题)
     if False:
-        distmat = -torch.mm(qf, gf.t()).cpu().numpy()
+        distmat = -torch.mm(qf, gf.t()).numpy()
         index = np.argsort(distmat, axis=1)  # from small to large
         new_gallery_index = np.unique(index[:, :top_k].reshape(-1))
         print('new_gallery_index', len(new_gallery_index))

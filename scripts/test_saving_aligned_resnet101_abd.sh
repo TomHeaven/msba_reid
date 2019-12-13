@@ -2,7 +2,7 @@
 export CUDA_VISIBLE_DEVICES='1'
 GPUS='0'
 
-CUDA_VISIBLE_DEVICES=$GPUS python3 tools/test_save_res.py --test_phase -cfg='configs/softmax_triplet.yml' \
+CUDA_VISIBLE_DEVICES=$GPUS python3 tools/test_save_res_gf.py --test_phase -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'competition1910' \
 MODEL.NAME 'aligned_resnet101_ibn_abd' \
 MODEL.BACKBONE 'aligned_resnet101_abd' \

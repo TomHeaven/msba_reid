@@ -7,16 +7,20 @@
 import argparse
 import os
 import sys
-import numpy as np
-import h5py
+from os import mkdir
 import json
 import time
+
+import torch
+from torch.backends import cudnn
 
 sys.path.append('.')
 from config import cfg
 from data import get_test_dataloader
+from engine.inference_save_res import inference_aligned_flipped
+from modeling import build_model
 from utils.logger import setup_logger
-
+import h5py
 
 def main():
     parser = argparse.ArgumentParser(description="ReID Baseline Inference")
@@ -46,37 +50,30 @@ def main():
         logger.info("Loaded configuration file {}".format(args.config_file))
     logger.info("Running with config:\n{}".format(cfg))
 
+    cudnn.benchmark = True
+
+    model = build_model(cfg, 0)
+    model = model.cuda()
+    model.load_params_wo_fc(torch.load(cfg.TEST.WEIGHT))
+
     test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=True)
 
+    use_local_feature = False
+    use_rerank = True
+    use_cross_feature = False
 
-    distmat_paths = [cfg.TEST.DISTMAT1, cfg.TEST.DISTMAT2, cfg.TEST.DISTMAT3,
-                     cfg.TEST.DISTMAT4, cfg.TEST.DISTMAT5, cfg.TEST.DISTMAT6,
-                     cfg.TEST.DISTMAT7, cfg.TEST.DISTMAT8, cfg.TEST.DISTMAT9,
-                     cfg.TEST.DISTMAT10, cfg.TEST.DISTMAT11, cfg.TEST.DISTMAT12,
-                     cfg.TEST.DISTMAT13, cfg.TEST.DISTMAT14, cfg.TEST.DISTMAT15,
-                     cfg.TEST.DISTMAT16, cfg.TEST.DISTMAT17, cfg.TEST.DISTMAT18,
+    distmat, index, distmat1, distmat2 = inference_aligned_flipped(cfg, model, test_dataloader, num_query,
+                                                                   use_local_feature, use_rerank, use_cross_feature)
 
-                     ]
-    # 加载dist_mats
-    dist_mats = []
+    suffix = 'flip'
+    if use_local_feature:
+        suffix += '_aligned'
+    if use_rerank:
+        suffix += '_rerank'
+    if use_cross_feature:
+        suffix += '_cross'
 
-    cnt = 0
-    for distmat_path in distmat_paths:
-        if os.path.isfile(distmat_path):
-            f = h5py.File(distmat_path, 'r')
-            mat = f['dist_mat'][()]
-            mat = mat[np.newaxis, ...]
-            dist_mats.append(mat)
-            f.close()
-            cnt += 1
-        else:
-            logger.info(f'Invalid checkpoint path {distmat_path}')
 
-    dist_mat = np.concatenate(dist_mats, axis=0).mean(axis=0)
-    score = dist_mat
-    index = np.argsort(score, axis=1)  # from small to large
-
-    logger.info(f'Average {cnt} results')
     # saving results
     if args.test_phase:
         query_path = [t[0] for t in dataset.query]
@@ -95,8 +92,17 @@ def main():
 
         # 写入结果
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-        json.dump(results, open('submit/ensemble_%s_%fm.json' % (strtime, cnt), 'w'))
+        json.dump(results, open('submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix), 'w'))
 
+        # saving dist_mats
+        f = h5py.File('/Volumes/Data/比赛/行人重识别2019/dist_mats/test_%s_%s_%s.h5' % (cfg.MODEL.NAME, strtime, suffix), 'w')
+        f.create_dataset('dist_mat', data=distmat, compression='gzip')
+
+        if distmat1 is not None:
+            f.create_dataset('dist_mat1', data=distmat1, compression='gzip')
+        if distmat2 is not None:
+            f.create_dataset('dist_mat2', data=distmat2, compression='gzip')
+        f.close()
 
 if __name__ == '__main__':
     main()

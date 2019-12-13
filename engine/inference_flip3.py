@@ -382,29 +382,25 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
         local_distmat_flipped = None
 
     if use_rerank:
-        #TODO: local_distmat的对应关系需要修正。现在暂时未用到。
-
         query_num = qf.size(0)
         gallery_num = gf.size(0)
 
-        distmat = compute_distmat_using_gpu(qf, gf_flipped) # 用交叉特征组合1
-        distmat1 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3,
-                              local_distmat=local_distmat,
-                              theta_value=theta,
-                              only_local=False)
-        del distmat
+        distmat = compute_distmat_using_gpu(qf, gf)
+        distmat += compute_distmat_using_gpu(qf, gf_flipped)
+        distmat += compute_distmat_using_gpu(qf_flipped, gf)
+        distmat += compute_distmat_using_gpu(qf_flipped, gf_flipped)
+        distmat /= 4
 
-        distmat = compute_distmat_using_gpu(qf_flipped, gf) # 用交叉特征组合2
-        distmat2 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3, local_distmat=local_distmat, theta_value=theta,
+        del qf, gf, qf_flipped, gf_flipped
+
+        distmat = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3, local_distmat=local_distmat, theta_value=theta,
                          only_local=False)  # (current best)
-        del distmat
-        distmat = (distmat1 + distmat2) / 2
 
     else:
-        distmat1 = -torch.mm(qf, gf_flipped.t()).cpu().numpy()
-        distmat2= -torch.mm(qf_flipped, gf.t()).cpu().numpy()
+        distmat = -torch.mm(qf, gf.t()).cpu().numpy()
+        distmat_flipped = -torch.mm(qf_flipped, gf_flipped.t()).cpu().numpy()
 
-        distmat = (distmat1 + distmat2) / 2
+        distmat = (distmat + distmat_flipped) / 2
 
     #if True:
     #    cmc, mAP = evaluate(distmat, q_pids, g_pids, q_camids, g_camids)

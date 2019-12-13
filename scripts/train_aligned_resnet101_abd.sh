@@ -18,5 +18,6 @@ SOLVER.LABEL_SMOOTH 'True' \
 SOLVER.BASE_LR '0.00035' \
 SOLVER.EVAL_PERIOD '10' \
 MODEL.PRETRAIN_PATH '/Users/tomheaven/.cache/torch/checkpoints/resnet101_ibn_a.pth.tar' \
+MODEL.CHECKPOINT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/sota/aligned_resnet101_ibn_abd_bs63/ckpts/model_epoch100.pth'
 
 
