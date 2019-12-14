@@ -8,7 +8,7 @@ import glob
 import os.path as osp
 import re
 
-from .dataset_loader import ImageDataset
+from .bases import ImageDataset
 
 
 class DukeMTMCreID(ImageDataset):

@@ -9,7 +9,7 @@ import re
 
 import os.path as osp
 
-from .dataset_loader import ImageDataset
+from .bases import ImageDataset
 
 
 class Competition1910(ImageDataset):
@@ -68,6 +68,10 @@ class Competition1910(ImageDataset):
         img_paths = glob.glob(osp.join(dir_path, '*.png'))
         #print('dir_path', dir_path, 'img_paths', len(img_paths), img_paths[0])
         #pattern = re.compile(r'([-\d]+)_c(\d)')
+
+        DEBUG = False
+        if DEBUG:
+            img_paths = img_paths[:10]
 
         pid_container = set()
         for img_path in img_paths:

@@ -56,6 +56,7 @@ def main():
     model = model.cuda()
     model.load_params_wo_fc(torch.load(cfg.TEST.WEIGHT))
 
+    cfg.DATASETS.PRELOAD_IMAGE = False
     test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=True)
 
     use_local_feature = True

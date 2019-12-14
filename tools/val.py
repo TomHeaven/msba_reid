@@ -53,6 +53,7 @@ def main():
     model = model.cuda()
     model.load_params_wo_fc(torch.load(cfg.TEST.WEIGHT))
 
+    cfg.DATASETS.PRELOAD_IMAGE = False
     test_dataloader, num_query, _ = get_test_dataloader(cfg, test_phase=False)
 
     #inference_no_rerank(cfg, model, test_dataloader, num_query)

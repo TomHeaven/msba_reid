@@ -24,15 +24,14 @@ def get_dataloader(cfg):
     print('prepare training set ...')
     train_img_items = list()
     for d in cfg.DATASETS.NAMES:
-        # dataset = init_dataset(d, root=cfg.DATASETS.ROOT_DIR, ) # original
-        dataset = init_dataset(d, root=cfg.DATASETS.ROOT_DIR, preload_image=cfg.DATASETS.PRELOAD_IMAGE)
+        dataset = init_dataset(d, root=cfg.DATASETS.ROOT_DIR)
         train_img_items.extend(dataset.train)
 
     print('prepare test set ...')
     dataset = init_dataset(cfg.DATASETS.TEST_NAMES, root=cfg.DATASETS.ROOT_DIR)
     query_names, gallery_names = dataset.query, dataset.gallery
-
-    tng_set = ImageDataset(train_img_items, tng_tfms, relabel=True)
+    # preload image here rather than in init_dataset
+    tng_set = ImageDataset(train_img_items, tng_tfms, relabel=True, preload_image=cfg.DATASETS.PRELOAD_IMAGE)
 
     num_workers = cfg.DATALOADER.NUM_WORKERS
     data_sampler = None

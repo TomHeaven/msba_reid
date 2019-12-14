@@ -68,7 +68,7 @@ class ImageDataset(Dataset):
     def __getitem__(self, index):
         # print ('use dataset_loader.py!')
         img_path, pid, camid = self.img_items[index]
-        if self.preload_images:
+        if self.preload_image:
             img = self.loaded_imgs[img_path]
         else:
             img = read_image(img_path)

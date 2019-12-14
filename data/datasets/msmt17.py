@@ -8,7 +8,7 @@ import sys
 import os
 import os.path as osp
 
-from .dataset_loader import ImageDataset
+from .bases import ImageDataset
 
 ##### Log #####
 # 22.01.2019
