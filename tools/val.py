@@ -59,8 +59,8 @@ def main():
     #inference(cfg, model, test_dataloader, num_query)
     #inference_aligned(cfg, model, test_dataloader, num_query) # using flipped image
 
-    inference_aligned_flipped(cfg, model, test_dataloader, num_query,  use_local_feature=False, use_rerank=True,
-                              use_cross_feature=True)
+    inference_aligned_flipped(cfg, model, test_dataloader, num_query,  use_local_feature=True, use_rerank=True,
+                              use_cross_feature=False)
 
 
 if __name__ == '__main__':

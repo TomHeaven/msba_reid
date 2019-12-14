@@ -10,8 +10,6 @@ import re
 from PIL import Image
 from torch.utils.data import Dataset
 
-import pdb
-
 __all__ = ['ImageDataset']
 
 
@@ -34,8 +32,8 @@ def read_image(img_path):
 class ImageDataset(Dataset):
     """Image Person ReID Dataset"""
 
-    def __init__(self, img_items, transform=None, relabel=True, preload_image=False):
-        self.tfms, self.relabel, self.preload_image = transform, relabel, preload_image
+    def __init__(self, img_items, transform=None, relabel=True):
+        self.tfms,self.relabel = transform,relabel
 
         self.pid2label = None
         if self.relabel:
@@ -50,14 +48,6 @@ class ImageDataset(Dataset):
         else:
             self.img_items = img_items
 
-        if self.preload_image:
-            print('=> Pre-loading images to memory ...')
-            self.loaded_imgs = {}
-            for i in range(self.__len__()):
-                img_path, pid, camid = self.img_items[i]
-                img = read_image(img_path)
-                self.loaded_imgs[img_path] = img
-
     @property
     def c(self):
         return len(self.pid2label) if self.pid2label is not None else 0
@@ -66,12 +56,8 @@ class ImageDataset(Dataset):
         return len(self.img_items)
 
     def __getitem__(self, index):
-        # print ('use dataset_loader.py!')
         img_path, pid, camid = self.img_items[index]
-        if self.preload_images:
-            img = self.loaded_imgs[img_path]
-        else:
-            img = read_image(img_path)
+        img = read_image(img_path)
 
         if self.tfms is not None:   img = self.tfms(img)
         if self.relabel:            pid = self.pid2label[pid]

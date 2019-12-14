@@ -7,7 +7,7 @@
 import os.path as osp
 
 from utils.iotools import mkdir_if_missing, write_json, read_json
-from .bases import ImageDataset
+from .dataset_loader import ImageDataset
 
 
 class CUHK03(ImageDataset):

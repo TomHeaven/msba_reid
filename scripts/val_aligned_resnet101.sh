@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-GPUS='0'
+GPUS='1'
 
 CUDA_VISIBLE_DEVICES=$GPUS python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'competition1910' \

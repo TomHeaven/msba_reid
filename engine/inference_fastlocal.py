@@ -347,22 +347,17 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
             lqf = lqf.permute(0, 2, 1)
             lgf = lgf.permute(0, 2, 1)
             local_qg_distmat = low_memory_local_dist(lqf.numpy(), lgf.numpy(), aligned=True)
-            local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
-            local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
-            local_distmat1 = np.concatenate(
-                [np.concatenate([local_qq_distmat, local_qg_distmat], axis=1),
-                 np.concatenate([local_qg_distmat.T, local_gg_distmat], axis=1)],
-                axis=0)
-            del local_qg_distmat, local_qq_distmat, local_gg_distmat
+            #local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
+            #local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
+            local_distmat1 = local_qg_distmat
 
         query_num = qf.size(0)
         gallery_num = gf.size(0)
 
         distmat = compute_distmat_using_gpu(qf, gf)
-        distmat1 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3,
-                              local_distmat=local_distmat1,
-                              theta_value=theta,
+        distmat1 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3,local_distmat=None, theta_value=theta,
                               only_local=False)
+        distmat1 = theta * distmat1 + (1 - theta) * 0.2 * local_distmat1
         del distmat, local_distmat1
 
         if len(local_feats) > 0 and use_local_feature:
@@ -370,17 +365,15 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
             lqf = lqf_flipped.permute(0, 2, 1)
             lgf = lgf_flipped.permute(0, 2, 1)
             local_qg_distmat = low_memory_local_dist(lqf.numpy(), lgf.numpy(), aligned=True)
-            local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
-            local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
-            local_distmat2 = np.concatenate(
-                [np.concatenate([local_qq_distmat, local_qg_distmat], axis=1),
-                 np.concatenate([local_qg_distmat.T, local_gg_distmat], axis=1)],
-                axis=0)
-            del local_qg_distmat, local_qq_distmat, local_gg_distmat
+            #local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
+            #local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
+            local_distmat2 = local_qg_distmat
 
         distmat = compute_distmat_using_gpu(qf_flipped, gf_flipped)
-        distmat2 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3, local_distmat=local_distmat2, theta_value=theta,
+        distmat2 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3, local_distmat=None, theta_value=theta,
                          only_local=False)  # (current best)
+
+        distmat2 = theta * distmat2 + (1- theta) * 0.2 * local_distmat2
         del distmat, local_distmat2
         distmat = (distmat1 + distmat2) / 2
 

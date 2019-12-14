@@ -2,7 +2,7 @@
 Notice the input/output shape of methods, so that you can better understand
 the meaning of these methods."""
 import numpy as np
-import torch
+
 
 def normalize(nparray, order=2, axis=0):
     """Normalize a N-D numpy array along the specified axis."""
@@ -124,6 +124,7 @@ def serial_local_dist(x, y):
             dist_mat[i, j] = meta_local_dist(x[i], y[j])
     return dist_mat
 
+
 def parallel_local_dist(x, y, aligned):
     """Parallel version.
   Args:
@@ -134,27 +135,13 @@ def parallel_local_dist(x, y, aligned):
   """
     M, m, d = x.shape
     N, n, d = y.shape
-
-    x = torch.tensor(x).cuda()
-    y = torch.tensor(y).cuda()
-
-    x = x.view(M*m, d)
-    y = y.view(N*n, d)
-
-    #x = x.reshape([M * m, d])
-    #y = y.reshape([N * n, d])
+    x = x.reshape([M * m, d])
+    y = y.reshape([N * n, d])
     # shape [M * m, N * n]
-    #dist_mat = compute_dist(x, y, type='euclidean')
-
-    dist_mat = torch.cdist(x, y)
-
-    #dist_mat = (np.exp(dist_mat) - 1.) / (np.exp(dist_mat) + 1.)
-
-    dist_mat = (torch.exp(dist_mat) - 1.) / (torch.exp(dist_mat) + 1.)
-
+    dist_mat = compute_dist(x, y, type='euclidean')
+    dist_mat = (np.exp(dist_mat) - 1.) / (np.exp(dist_mat) + 1.)
     # shape [M * m, N * n] -> [M, m, N, n] -> [m, n, M, N]
-    dist_mat = dist_mat.reshape([M, m, N, n]).permute([1, 3, 0, 2])
-    dist_mat = dist_mat.cpu().numpy()
+    dist_mat = dist_mat.reshape([M, m, N, n]).transpose([1, 3, 0, 2])
     # shape [M, N]
     if aligned:
         dist_mat = shortest_dist(dist_mat)

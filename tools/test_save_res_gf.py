@@ -58,7 +58,7 @@ def main():
 
     test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=True)
 
-    use_local_feature = False
+    use_local_feature = True
     use_rerank = True
     use_cross_feature = False
 

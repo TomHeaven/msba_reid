@@ -9,7 +9,7 @@ import re
 
 import os.path as osp
 
-from .bases import ImageDataset
+from .dataset_loader import ImageDataset
 import warnings
 
 

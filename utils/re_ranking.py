@@ -132,7 +132,7 @@ def mem_saving_argsort(a, top_k=10):
 
 #################################
 def compute_distmat_using_gpu(probFea, galFea, memory_save=True, mini_batch=5000):
-    print('Computing original distance using GPU ...')
+    print('Computing distance using GPU ...')
     feat = torch.cat([probFea, galFea]).cuda()
     all_num = probFea.size(0) + galFea.size(0)
     if memory_save:
