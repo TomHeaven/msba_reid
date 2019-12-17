@@ -65,8 +65,8 @@ def get_img_mean_std(data_dir):
 if __name__ == '__main__':
     data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛'
     list_file = 'train_list.txt'
-    #data_summary(data_dir, list_file)
+    data_summary(data_dir, list_file)
 
     data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛/mytrain'
-    get_img_mean_std(data_dir)
+    #get_img_mean_std(data_dir)
 

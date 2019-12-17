@@ -105,7 +105,8 @@ _C.DATALOADER = CN()
 _C.DATALOADER.SAMPLER = 'softmax'
 # Number of instance for each person
 _C.DATALOADER.NUM_INSTANCE = 4
-_C.DATALOADER.NUM_WORKERS = 2 # old 8
+_C.DATALOADER.NUM_WORKERS = 4 # old 8
+_C.DATALOADER.MAX_INSTANCE = 50
 
 # ---------------------------------------------------------------------------- #
 # Solver

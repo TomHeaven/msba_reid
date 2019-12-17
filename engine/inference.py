@@ -430,8 +430,16 @@ def inference_aligned_flipped(
     while batch[0] is not None:
         img, pid, camid = batch
         with torch.no_grad():
-            gf, bn_gf, lf, bn_lf = model(img)
-            gff, bn_gff, lff, bn_lff = model(torch.flip(img, [3]))
+            ret = model(img)
+            ret_flip = model(torch.flip(img, [3]))
+            if len(ret) == 4:
+                gf, bn_gf, lf, bn_lf = ret
+                gff, bn_gff, lff, bn_lff = ret_flip
+            else:
+                gf, bn_gf = ret
+                gff, bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
 
         # 4 features
         gfs.append(gf.cpu())

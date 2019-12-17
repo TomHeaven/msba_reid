@@ -36,7 +36,8 @@ def get_dataloader(cfg):
     num_workers = cfg.DATALOADER.NUM_WORKERS
     data_sampler = None
     if cfg.DATALOADER.SAMPLER == 'triplet':
-        data_sampler = RandomIdentitySampler(tng_set.img_items, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE)
+        data_sampler = RandomIdentitySampler(tng_set.img_items, cfg.SOLVER.IMS_PER_BATCH, cfg.DATALOADER.NUM_INSTANCE,
+                                             cfg.DATALOADER.MAX_INSTANCE)
 
     tng_dataloader = DataLoader(tng_set, cfg.SOLVER.IMS_PER_BATCH, shuffle=(data_sampler is None),
                                 num_workers=num_workers, sampler=data_sampler,

@@ -36,6 +36,7 @@ def main():
     cfg.merge_from_list(args.opts)
     # set pretrian = False to avoid loading weight repeatedly
     cfg.MODEL.PRETRAIN = False
+    cfg.DATASETS.PRELOAD_IMAGE = False
     cfg.freeze()
 
     logger = setup_logger("reid_baseline", False, 0)
@@ -53,15 +54,14 @@ def main():
     model = model.cuda()
     model.load_params_wo_fc(torch.load(cfg.TEST.WEIGHT))
 
-    cfg.DATASETS.PRELOAD_IMAGE = False
     test_dataloader, num_query, _ = get_test_dataloader(cfg, test_phase=False)
 
     #inference_no_rerank(cfg, model, test_dataloader, num_query)
     #inference(cfg, model, test_dataloader, num_query)
     #inference_aligned(cfg, model, test_dataloader, num_query) # using flipped image
 
-    inference_aligned_flipped(cfg, model, test_dataloader, num_query,  use_local_feature=True, use_rerank=True,
-                              use_cross_feature=False)
+    inference_aligned_flipped(cfg, model, test_dataloader, num_query,  use_local_feature=False, use_rerank=True,
+                              use_cross_feature=True)
 
 
 if __name__ == '__main__':

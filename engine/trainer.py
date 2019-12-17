@@ -59,7 +59,7 @@ class ReidSystem():
     def loss_fns(self, outputs, labels):
         ce_loss = self.ce_loss(outputs[0], labels)
         triplet_loss = self.triplet(outputs[1], labels)[0]
-        return {'ce_loss': ce_loss, 'triplet': triplet_loss}
+        return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
 
     def aligned_loss_fns(self, outputs, labels):
         """
@@ -129,6 +129,10 @@ class ReidSystem():
             loss_dict = self.aligned_loss_fns(outputs[:3], labels)
             if self.current_epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
                 loss_dict['of_loss'] = self.of_penalty(outputs[3])
+        elif self.base_type in [BASE_RESNET101_ABD, BASE_RESNEXT101_ABD]:
+            loss_dict = self.loss_fns(outputs, labels)
+            if self.current_epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
+                loss_dict['of_loss'] = self.of_penalty(outputs[2])
         else:
             loss_dict = self.loss_fns(outputs, labels)
 
@@ -143,19 +147,15 @@ class ReidSystem():
         
         if (self.global_step+1) % self.log_interval == 0:
             self.writer.add_scalar('cross_entropy_loss', loss_dict['ce_loss'], self.global_step)
-            if 'triplet' in loss_dict.keys():
-                self.writer.add_scalar('triplet_loss', loss_dict['triplet'], self.global_step)
-            else:
-                self.writer.add_scalar('global_triplet_loss', loss_dict['global_triplet_loss'], self.global_step)
+            self.writer.add_scalar('global_triplet_loss', loss_dict['global_triplet_loss'], self.global_step)
+            if 'local_triplet_loss' in loss_dict.keys():
                 self.writer.add_scalar('local_triplet_loss', loss_dict['local_triplet_loss'], self.global_step)
             self.writer.add_scalar('total_loss', loss_dict['total_loss'], self.global_step)
 
         self.running_loss.update(total_loss.item())
         self.running_CE_loss.update(loss_dict['ce_loss'])
-        if 'triplet' in loss_dict.keys():
-            self.running_GT_loss.update(loss_dict['triplet_loss'])
-        else:
-            self.running_GT_loss.update(loss_dict['global_triplet_loss'])
+        self.running_GT_loss.update(loss_dict['global_triplet_loss'])
+        if 'local_triplet_loss' in loss_dict.keys():
             self.running_LT_loss.update(loss_dict['local_triplet_loss'])
         if 'of_loss' in loss_dict.keys():
             self.running_OF_loss.update(loss_dict['of_loss'])
@@ -293,6 +293,6 @@ class ReidSystem():
         opt_dict = torch.load(opt_path)
         self.opt = opt_dict['optimizer']
         self.lr_sched = opt_dict['lr_scheduler']
-        self.start_epoch = opt_dict['epoch'] + 1
-        self.current_epoch = opt_dict['epoch'] + 1
+        self.start_epoch = opt_dict['epoch']
+        self.current_epoch = opt_dict['epoch']
         #print('start_epoch', self.start_epoch)

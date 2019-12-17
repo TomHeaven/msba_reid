@@ -41,7 +41,8 @@ class IBN(nn.Module):
     """
     def __init__(self, planes):
         super(IBN, self).__init__()
-        half1 = int(planes/8)
+        #half1 = int(planes/8)
+        half1 = int(planes/2)
         self.half = half1
         half2 = planes - half1
         self.IN = nn.InstanceNorm2d(half1, affine=True)
@@ -191,6 +192,8 @@ class ResNet(nn.Module):
             new_k = '.'.join(k.split('.')[1:])  # remove module in name
             if self.state_dict()[new_k].shape == state_dict[k].shape:
                 new_state_dict[new_k] = state_dict[k]
+            else:
+                print('ignored key', k)
         state_dict = new_state_dict
         self.load_state_dict(state_dict, strict=False)
 

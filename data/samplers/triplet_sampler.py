@@ -23,11 +23,12 @@ class RandomIdentitySampler(Sampler):
     - num_instances (int): number of instances per identity in a batch.
     - batch_size (int): number of examples in a batch.
     """
-    def __init__(self, data_source, batch_size, num_instances):
+    def __init__(self, data_source, batch_size, num_instances, max_instances):
 
         self.data_source = data_source
         self.batch_size = batch_size
         self.num_instances = num_instances
+        self.max_instances = max_instances
         self.num_pids_per_batch = self.batch_size // self.num_instances
         self.index_dic = defaultdict(list)
         for index, info in enumerate(self.data_source):
@@ -42,28 +43,31 @@ class RandomIdentitySampler(Sampler):
             num = len(idxs)
             if num < self.num_instances:
                 num = self.num_instances
+
+            ### Tom Added according to Zhang
+            if num > self.max_instances:
+                num = self.max_instances
+            ####
+
             self.length += num - num % self.num_instances
 
-        ### Tom Added
-        #self.cnt = 0
-        ####
 
     def __iter__(self):
         batch_idxs_dict = defaultdict(list)
 
-        ### Tom Added
-        #if self.cnt % 5 == 0:
-        #    print('Shuffle pids in triplet sampler ...')
-        #    random.shuffle(self.pids)
-        #self.cnt += 1
-        ####
-
         for pid in self.pids:
             idxs = copy.deepcopy(self.index_dic[pid])
+
             if len(idxs) < self.num_instances:
                 ## Updated by Zhang
                 #idxs = idxs + np.random.choice(idxs, size=self.num_instances - len(idxs), replace=True).tolist()
                 idxs = np.random.choice(idxs, size=self.num_instances, replace=True) # 原始采样
+
+            ### Tom Added according to Zhang
+            if len(idxs) > self.max_instances:
+                idxs = np.random.choice(idxs, size=self.max_instances, replace=False)
+            ####
+
             random.shuffle(idxs)
             batch_idxs = []
             for idx in idxs:

@@ -40,6 +40,7 @@ def main():
     cfg.merge_from_list(args.opts)
     # set pretrian = False to avoid loading weight repeatedly
     cfg.MODEL.PRETRAIN = False
+    cfg.DATASETS.PRELOAD_IMAGE = False
     cfg.freeze()
 
     logger = setup_logger("reid_baseline", False, 0)
@@ -55,6 +56,7 @@ def main():
     model = build_model(cfg, 0)
     model = model.cuda()
     model.load_params_wo_fc(torch.load(cfg.TEST.WEIGHT))
+
 
     test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=True)
 
@@ -91,11 +93,17 @@ def main():
             results[query_path[i].split('/')[-1].split('_')[-1]] = topk_res
 
         # 写入结果
+        if not os.path.isdir('submit'):
+            os.mkdir('submit')
+
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         json.dump(results, open('submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix), 'w'))
 
         # saving dist_mats
-        f = h5py.File('/Volumes/Data/比赛/行人重识别2019/dist_mats/test_%s_%s_%s.h5' % (cfg.MODEL.NAME, strtime, suffix), 'w')
+        mat_path = '/Volumes/Data/比赛/行人重识别2019/dist_mats'
+        if not os.path.isdir(mat_path):
+            os.mkdir(mat_path)
+        f = h5py.File('%s/test_%s_%s_%s.h5' % (mat_path, cfg.MODEL.NAME, strtime, suffix), 'w')
         f.create_dataset('dist_mat', data=distmat, compression='gzip')
 
         if distmat1 is not None:

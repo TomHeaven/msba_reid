@@ -9,13 +9,21 @@ from torch import nn
 from .backbones import *
 from .losses.cosface import AddMarginProduct
 from .utils import *
+#from .backbones.resnext_ibn_a import resnext101_ibn_a
 
-__all__ =['Baseline', 'BASE_RESNET50', 'BASE_MPNCOV_RESNET101', 'BASE_ALIGNED_RESNET50', 'BASE_ALIGNED_RESNET101',
+__all__ =['Baseline', 'BASE_RESNET50', 'BASE_RESNET101', 'BASE_RESNEXT101',
+          'BASE_RESNET101_ABD', 'BASE_RESNEXT101_ABD',
+          'BASE_MPNCOV_RESNET101', 'BASE_ALIGNED_RESNET50', 'BASE_ALIGNED_RESNET101',
           'BASE_ALIGNED_RESNEXT101', 'BASE_ALIGNED_RESNEXT50', 'BASE_ALIGNED_SE_RESNET101', 'BASE_ALIGNED_DENSENET169',
           'BASE_ALIGNED_RESNET50_ABD', 'BASE_ALIGNED_RESNET101_ABD', 'BASE_ALIGNED_RESNEXT101_ABD',
           'BASE_ALIGNED_MPNCOV_RESNET50', 'BASE_ALIGNED_MPNCOV_RESNET101', 'BASE_ALIGNED_MPNCOV_RESNEXT101']
 
 BASE_RESNET50 = 0
+BASE_RESNET101 = 20
+BASE_RESNEXT101 = 21
+BASE_RESNET101_ABD = 22
+BASE_RESNEXT101_ABD = 23
+
 BASE_MPNCOV_RESNET101 = 1
 BASE_ALIGNED_RESNET50 = 2
 BASE_ALIGNED_RESNET101 = 3
@@ -48,13 +56,25 @@ class Baseline(nn.Module):
         super().__init__()
         #try:
         if True:
-            if backbone.startswith('resnet'):
+            #print('backbone', backbone)
+            if backbone == 'resnet50':
                 self.base_type = BASE_RESNET50
-                self.base = ResNet.from_name(backbone, last_stride, with_ibn, gcb, stage_with_gcb)
+                self.base = ResNet.from_name(backbone, last_stride, with_ibn, gcb, stage_with_gcb, with_abd=False)
+            elif backbone == 'resnet101':
+                self.base_type = BASE_RESNET101
+                self.base = ResNet.from_name(backbone, last_stride, with_ibn, gcb, stage_with_gcb, with_abd=False)
+            elif backbone == 'resnext101':
+                self.base_type = BASE_RESNEXT101
+                self.base = resnext101_ibn_a(4, 32, last_stride, with_abd=False)
+            elif backbone == 'resnet101_abd':
+                self.base_type = BASE_RESNET101_ABD
+                self.base = ResNet.from_name('resnet101', last_stride, with_ibn, gcb, stage_with_gcb, with_abd=True)
+            elif backbone == 'resnext101_abd':
+                self.base_type = BASE_RESNEXT101_ABD
+                self.base = resnext101_ibn_a(4, 32, last_stride, with_abd=True)
             elif backbone == 'mpncov_resnet101':
                 #self.use_mpn_cov = True
                 self.base_type = BASE_MPNCOV_RESNET101
-                print('backbone', backbone)
                 self.base = mpncovresnet101(False, last_stride, with_ibn, gcb, stage_with_gcb)
             ########################################
             ## 加 aligned
@@ -146,6 +166,13 @@ class Baseline(nn.Module):
                 global_feat, bn_local_feat, f_dict = self.base(x)
             else:
                 global_feat, local_feat, bn_local_feat = self.base(x)
+        elif self.base_type in [BASE_RESNET101_ABD, BASE_RESNEXT101_ABD]:
+        ### abd
+            if self.training:
+                global_feat, f_dict = self.base(x)
+            else:
+                global_feat = self.base(x)
+            global_feat = self.gap(global_feat)  # (b, 2048, 1, 1)
         else:
         ### global only
             global_feat = self.gap(self.base(x))  # (b, 2048, 1, 1)
@@ -164,6 +191,8 @@ class Baseline(nn.Module):
             elif self.base_type in [BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
                 ### aligned abd
                 return cls_score, global_feat, bn_local_feat, f_dict
+            elif self.base_type in [BASE_RESNET101_ABD, BASE_RESNEXT101_ABD]:
+                return cls_score, global_feat, f_dict
             else:
                 ### global only
                 return cls_score, global_feat
@@ -178,7 +207,7 @@ class Baseline(nn.Module):
                 return global_feat, bn_global_feat, local_feat, bn_local_feat
             else:
                 ### global only
-                return bn_global_feat # 几乎不使用
+                return global_feat, bn_global_feat
 
     def load_params_wo_fc(self, state_dict):
         # new_state_dict = {}
