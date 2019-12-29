@@ -146,9 +146,10 @@ class TripletLossAlignedReID(nn.Module):
         n = inputs.size(0)
         #inputs = 1. * inputs / (torch.norm(inputs, 2, dim=-1, keepdim=True).expand_as(inputs) + 1e-12)
         # Compute pairwise distance, replace by the official when merged
-        dist = torch.pow(inputs, 2).sum(dim=1, keepdim=True).expand(n, n)
-        dist = dist + dist.t()
-        dist.addmm_(1, -2, inputs, inputs.t())
+        #dist = torch.pow(inputs, 2).sum(dim=1, keepdim=True).expand(n, n)
+        #dist = dist + dist.t()
+        #dist.addmm_(1, -2, inputs, inputs.t())
+        dist = torch.cdist(inputs, inputs)
         dist = dist.clamp(min=1e-12).sqrt()  # for numerical stability
         # For each anchor, find the hardest positive and negative
         dist_ap,dist_an,p_inds,n_inds = hard_example_mining(dist,targets,return_inds=True)

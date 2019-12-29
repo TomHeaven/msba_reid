@@ -40,6 +40,8 @@ class ReidSystem():
         self.triplet = TripletLoss(cfg.SOLVER.MARGIN)
         self.aligned_triplet = TripletLossAlignedReID(margin=cfg.SOLVER.MARGIN)
         self.of_penalty = OFPenalty(beta=1e-6, penalty_position=['intermediate'])
+
+
         # optimizer and scheduler
         self.opt = make_optimizer(self.cfg, self.model)
         self.lr_sched = make_lr_scheduler(self.cfg, self.opt)
@@ -57,9 +59,13 @@ class ReidSystem():
         self.use_ddp = False
 
     def loss_fns(self, outputs, labels):
-        ce_loss = self.ce_loss(outputs[0], labels)
-        triplet_loss = self.triplet(outputs[1], labels)[0]
-        return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
+        if self.cfg.SOLVER.TRIPLET_ONLY:
+            triplet_loss = self.triplet(outputs[1], labels)[0]
+            return {'global_triplet_loss': triplet_loss}
+        else:
+            ce_loss = self.ce_loss(outputs[0], labels)
+            triplet_loss = self.triplet(outputs[1], labels)[0]
+            return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
 
     def aligned_loss_fns(self, outputs, labels):
         """
@@ -72,6 +78,15 @@ class ReidSystem():
         global_triplet_loss, local_triplet_loss = self.aligned_triplet(outputs[1], labels, outputs[2])
         #return {'ce_loss': ce_loss, 'globaltriplet': triplet_loss}
         return {'ce_loss': ce_loss, 'global_triplet_loss': global_triplet_loss, 'local_triplet_loss': local_triplet_loss}
+
+    def mgn_loss_fns(self, outputs, labels):
+        triplet_loss = [self.triplet(output, labels)[0] for output in outputs[1]]
+        triplet_loss = sum(triplet_loss) / len(triplet_loss)
+
+        ce_loss = [self.ce_loss(output, labels) for output in outputs[2]]
+        ce_loss = sum(ce_loss) / len(ce_loss)
+
+        return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
 
 
 
@@ -133,6 +148,8 @@ class ReidSystem():
             loss_dict = self.loss_fns(outputs, labels)
             if self.current_epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
                 loss_dict['of_loss'] = self.of_penalty(outputs[2])
+        elif self.base_type in [MGN_RESNET50, MGN_RESNET101, MGN_RESNEXT101]:
+            loss_dict = self.mgn_loss_fns(outputs, labels)
         else:
             loss_dict = self.loss_fns(outputs, labels)
 
@@ -145,15 +162,17 @@ class ReidSystem():
         print_str += f'Total loss: {total_loss.item():.3f} '
         print(print_str, end=' ')
         
-        if (self.global_step+1) % self.log_interval == 0:
-            self.writer.add_scalar('cross_entropy_loss', loss_dict['ce_loss'], self.global_step)
+        if self.writer and (self.global_step+1) % self.log_interval == 0:
+            if 'ce_loss' in loss_dict.keys():
+                self.writer.add_scalar('cross_entropy_loss', loss_dict['ce_loss'], self.global_step)
             self.writer.add_scalar('global_triplet_loss', loss_dict['global_triplet_loss'], self.global_step)
             if 'local_triplet_loss' in loss_dict.keys():
                 self.writer.add_scalar('local_triplet_loss', loss_dict['local_triplet_loss'], self.global_step)
             self.writer.add_scalar('total_loss', loss_dict['total_loss'], self.global_step)
 
         self.running_loss.update(total_loss.item())
-        self.running_CE_loss.update(loss_dict['ce_loss'])
+        if 'ce_loss' in loss_dict.keys():
+            self.running_CE_loss.update(loss_dict['ce_loss'])
         self.running_GT_loss.update(loss_dict['global_triplet_loss'])
         if 'local_triplet_loss' in loss_dict.keys():
             self.running_LT_loss.update(loss_dict['local_triplet_loss'])
@@ -253,6 +272,7 @@ class ReidSystem():
                     self.best_mAP = metric_dict['mAP']
                 else:
                     is_best = False
+                is_best = True
                 self.save_checkpoint(is_best)
 
             torch.cuda.empty_cache()

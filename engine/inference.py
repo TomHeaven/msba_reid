@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from data.datasets.eval_reid import evaluate
 from data.prefetcher import data_prefetcher
 from utils.re_ranking import re_ranking, compute_distmat_using_gpu
-from utils.distance import low_memory_local_dist
+from utils.distance import low_memory_local_dist, fast_local_dist
 import h5py
 import time
 
@@ -340,28 +340,25 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     local_distmat1 = None
     local_distmat2 = None
 
+    aligned = True
+
     if use_rerank:
+        #print('len(local_feats)', len(local_feats))
         if len(local_feats) > 0 and use_local_feature:
             # if True:
             # calculate the local distance
             lqf = lqf.permute(0, 2, 1)
             lgf = lgf.permute(0, 2, 1)
-            local_qg_distmat = low_memory_local_dist(lqf.numpy(), lgf.numpy(), aligned=True)
-            local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
-            local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
-            local_distmat1 = np.concatenate(
-                [np.concatenate([local_qq_distmat, local_qg_distmat], axis=1),
-                 np.concatenate([local_qg_distmat.T, local_gg_distmat], axis=1)],
-                axis=0)
-            del local_qg_distmat, local_qq_distmat, local_gg_distmat
+            local_distmat1  = fast_local_dist(lqf.numpy(), lgf.numpy(), aligned=aligned)
+            del lqf, lgf
 
         query_num = qf.size(0)
         gallery_num = gf.size(0)
 
-        distmat = compute_distmat_using_gpu(qf, gf)
-        distmat1 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3,
-                              local_distmat=local_distmat1,
-                              theta_value=theta,
+        distmat = compute_distmat_using_gpu(qf, gf, local_distmat1, theta=theta)
+        distmat1 = re_ranking(distmat, query_num, gallery_num, k1=12, k2=2, lambda_value=0.3,
+                              #local_distmat=local_distmat1,
+                              #theta_value=theta,
                               only_local=False)
         del distmat, local_distmat1
 
@@ -369,18 +366,11 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
             # flipped
             lqf = lqf_flipped.permute(0, 2, 1)
             lgf = lgf_flipped.permute(0, 2, 1)
-            local_qg_distmat = low_memory_local_dist(lqf.numpy(), lgf.numpy(), aligned=True)
-            local_qq_distmat = low_memory_local_dist(lqf.numpy(), lqf.numpy(), aligned=True)
-            local_gg_distmat = low_memory_local_dist(lgf.numpy(), lgf.numpy(), aligned=True)
-            local_distmat2 = np.concatenate(
-                [np.concatenate([local_qq_distmat, local_qg_distmat], axis=1),
-                 np.concatenate([local_qg_distmat.T, local_gg_distmat], axis=1)],
-                axis=0)
-            del local_qg_distmat, local_qq_distmat, local_gg_distmat
+            local_distmat2 = fast_local_dist(lqf.numpy(), lgf.numpy(), aligned=aligned)
+            del lqf, lgf, lqf_flipped, lgf_flipped
 
-        distmat = compute_distmat_using_gpu(qf_flipped, gf_flipped)
-        distmat2 = re_ranking(distmat, query_num, gallery_num, k1=6, k2=2, lambda_value=0.3, local_distmat=local_distmat2, theta_value=theta,
-                         only_local=False)  # (current best)
+        distmat = compute_distmat_using_gpu(qf_flipped, gf_flipped, local_distmat2, theta=theta)
+        distmat2 = re_ranking(distmat, query_num, gallery_num, k1=12, k2=2, lambda_value=0.3, only_local=False)  # (current best)
         del distmat, local_distmat2
         distmat = (distmat1 + distmat2) / 2
 
@@ -435,11 +425,19 @@ def inference_aligned_flipped(
             if len(ret) == 4:
                 gf, bn_gf, lf, bn_lf = ret
                 gff, bn_gff, lff, bn_lff = ret_flip
-            else:
+            elif len(ret) == 2:
                 gf, bn_gf = ret
                 gff, bn_gff = ret_flip
                 lf, bn_lf = None, None
                 lff, bn_lff = None, None
+            elif ret is not tuple:
+                gf = bn_gf = ret
+                gff = bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
+            else:
+                # print('ret', ret.size())
+                raise Exception("Unknown model returns, length = ", len(ret))
 
         # 4 features
         gfs.append(gf.cpu())
@@ -471,30 +469,83 @@ def inference_aligned_flipped(
     g_pids = np.asarray(pids[num_query:])
     g_camids = np.asarray(camids[num_query:])
 
-    logger.info(f"use_cross_feature = {use_cross_feature}, use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
+    logger.info(f"use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
 
-    if use_cross_feature:
-        logger.info("Computing distmat with bn_gf (+ lf)")
-        distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
+
+    logger.info("Computing distmat with bn_gf")
+    distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
                                    use_local_feature=use_local_feature, use_rerank=use_rerank)
-        distmat = distmat2
-        #distmat = (distmat1 + distmat2) / 2
-    else:
-        logger.info("Computing distmat with gf + bn_lf")
-        distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
+
+
+    logger.info("Computing distmat with gf + bn_lf")
+    distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
                                    use_local_feature=use_local_feature, use_rerank=use_rerank)
-        distmat = distmat1
-        #distmat1 = None
-        #distmat2 = None
 
-    #distmat = original_distmat
-    #distmat[:, new_gallery_index] = distmat1 - 100
+    for theta in np.linspace(0, 1, 21):
+        #theta = 0.55
+        distmat = distmat1 * (1 - theta) + distmat2 * theta
 
-    cmc, mAP = evaluate(distmat, q_pids, g_pids, q_camids, g_camids)
-    logger.info(f"mAP: {mAP:.1%}")
-    for r in [1, 5, 10]:
-        logger.info(f"CMC curve, Rank-{r:<3}:{cmc[r - 1]:.1%}")
-    logger.info(f"Score: {(mAP + cmc[0]) / 2.:.1%}")
+        cmc, mAP = evaluate(distmat, q_pids, g_pids, q_camids, g_camids)
+        logger.info(f"theta: {theta:.2%} mAP: {mAP:.1%}")
+        for r in [1, 5, 10]:
+            logger.info(f"CMC curve, Rank-{r:<3}:{cmc[r - 1]:.1%}")
+        logger.info(f"Score: {(mAP + cmc[0]) / 2.:.1%}")
+
+    #return bn_gf, bn_gff
+
+def inference_ssg(
+        cfg,
+        model,
+        test_dataloader,
+):
+    """
+    inference an aligned net with flipping and two pairs of global feature and local feature
+    :param cfg:
+    :param model:
+    :param test_dataloader:
+    :param num_query:
+    :return:
+    """
+    logger = logging.getLogger("reid_baseline.inference")
+    logger.info("Start inferencing aligned with flipping")
+
+    model.eval()
+
+    pids, camids = [], []
+    bn_gfs = []
+
+    test_prefetcher = data_prefetcher(test_dataloader, cfg)
+    batch = test_prefetcher.next()
+    while batch[0] is not None:
+        img, pid, camid = batch
+        with torch.no_grad():
+            ret = model(img)
+            ret_flip = model(torch.flip(img, [3]))
+            if len(ret) == 4:
+                gf, bn_gf, lf, bn_lf = ret
+                gff, bn_gff, lff, bn_lff = ret_flip
+            elif len(ret) == 2:
+                gf, bn_gf = ret
+                gff, bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
+            elif ret is not tuple:
+                gf = bn_gf = ret
+                gff = bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
+            else:
+                # print('ret', ret.size())
+                raise Exception("Unknown model returns, length = ", len(ret))
+
+        bn_gfs.append(bn_gf.cpu() + bn_gff.cpu())
+        pids.extend(pid.cpu().numpy())
+        #camids.extend(np.asarray(camid))
+        batch = test_prefetcher.next()
+
+    feats = torch.cat(bn_gfs, dim=0)
+    feats = F.normalize(feats, p=2, dim=1)
+    return feats
 
 
 

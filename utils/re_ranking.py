@@ -140,31 +140,43 @@ def mem_saving_argsort(a, top_k=10):
     return idx
 
 #################################
-def compute_distmat_using_gpu(probFea, galFea, memory_save=True, mini_batch=5000):
+def compute_distmat_using_gpu(probFea, galFea, distmat=None, theta=1.0, memory_save=True, mini_batch=5000):
+    """
+
+    :param probFea:
+    :param galFea:
+    :param dist_mat: local_distmat, re-use the variable to save memory
+    :param theta:
+    :param memory_save:
+    :param mini_batch:
+    :return:
+    """
     print('Computing distance using GPU ...')
-    feat = torch.cat([probFea, galFea]).cuda()
+    feat = torch.cat([probFea, galFea]).float().cuda()
     all_num = probFea.size(0) + galFea.size(0)
     if memory_save:
-        distmat = torch.zeros((all_num, all_num), dtype=torch.float16)  # 14 GB memory on Round2
+        if distmat is None:
+            #print('distmat is None')
+            distmat = np.zeros((all_num, all_num), dtype=np.float16)  # 10 GB memory on Round2TestA
+
         i = 0
         while True:
             it = i + mini_batch
             # print('i, it', i, it)
             if it < feat.size()[0]:
-                distmat[i:it, :] = torch.pow(torch.cdist(feat[i:it, :], feat), 2)
+                distmat[i:it, :] = torch.pow(torch.cdist(feat[i:it, :], feat), 2).cpu().numpy() * theta + (1 - theta) * distmat[i:it, :]
             else:
-                distmat[i:, :] = torch.pow(torch.cdist(feat[i:, :], feat), 2)
+                distmat[i:, :] = torch.pow(torch.cdist(feat[i:, :], feat), 2).cpu().numpy() * theta + (1 - theta) * distmat[i:, :]
                 break
             i = it
     else:
         ### new API
-        distmat = torch.pow(torch.cdist(feat, feat), 2)
+        if distmat is None:
+            distmat = torch.pow(torch.cdist(feat, feat), 2)
+        else:
+            distmat = torch.pow(torch.cdist(feat, feat), 2) * theta + (1 - theta) * distmat
 
-    # print('Copy distmat to original_dist ...')
-    original_dist = distmat.numpy()  # 14 GB memory
-    del distmat
-    del feat
-    return original_dist
+    return distmat
 
 
 def sparse2dense(sparse_mat, sparse_idx, all_num):

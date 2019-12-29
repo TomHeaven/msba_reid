@@ -74,7 +74,11 @@ class Aligned_Net(nn.Module):
             if not self.training:
                 lf = self.horizon_pool(x)
                 lf = lf.view(lf.size()[0:3])
+                ##  # torch.Size([32, 2048, 16])
+                #lf = F.adaptive_max_pool1d(input=lf, output_size=(1))
+                ##
                 lf = lf / torch.pow(lf, 2).sum(dim=1, keepdim=True).clamp(min=1e-12).sqrt()
+                #print('lf.size', lf.size())
 
             #print('1 x', x.size())  # torch.Size([32, 2048, 16, 8])
             bn_lf = self.bn(x)

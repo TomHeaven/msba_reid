@@ -16,7 +16,7 @@ def build_transforms(cfg, is_train=True):
         if cfg.INPUT.DO_FLIP:       
             res.append(T.RandomHorizontalFlip(p=cfg.INPUT.FLIP_PROB))
         if cfg.INPUT.DO_PAD:        
-            res.extend([T.Pad(cfg.INPUT.PADDING, padding_mode=cfg.INPUT.PADDING_MODE), 
+            res.extend([T.Pad(cfg.INPUT.PADDING, padding_mode=cfg.INPUT.PADDING_MODE),
                         T.RandomCrop(cfg.INPUT.SIZE_TRAIN)])
         if cfg.INPUT.DO_LIGHTING:   
             res.append(T.ColorJitter(cfg.INPUT.MAX_LIGHTING, cfg.INPUT.MAX_LIGHTING))

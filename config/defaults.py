@@ -94,8 +94,8 @@ _C.DATASETS = CN()
 _C.DATASETS.NAMES = ("market1501",)
 # List of the dataset names for testing
 _C.DATASETS.TEST_NAMES = "market1501"
-_C.DATASETS.ROOT_DIR = ('/Volumes/Data/比赛/行人重识别2019/data')
-_C.DATASETS.PRELOAD_IMAGE = True   # 是否将图像加载到内存
+_C.DATASETS.ROOT_DIR = ('/media/tomheaven/Data/比赛/行人重识别2019/data')
+_C.DATASETS.PRELOAD_IMAGE = True    # 是否将图像加载到内存
 
 # -----------------------------------------------------------------------------
 # DataLoader
@@ -115,7 +115,8 @@ _C.SOLVER = CN()
 _C.SOLVER.DIST = False
 
 _C.SOLVER.OPT = "adam"
-
+_C.SOLVER.TRIPLET_ONLY = False
+_C.SOLVER.RHO = 1.6e-3
 _C.SOLVER.LOSSTYPE = ("softmax",)
 
 _C.SOLVER.MAX_EPOCHS = 50
@@ -173,4 +174,4 @@ _C.TEST.DISTMAT18 = ""
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-_C.OUTPUT_DIR = "/Volumes/Data/比赛/行人重识别2019/logs/"
+_C.OUTPUT_DIR = "logs/"

@@ -64,6 +64,9 @@ def main():
     use_rerank = True
     use_cross_feature = True
 
+    #print('dataset.gallery', dataset.gallery[:100])
+    #return
+
     distmat, index, distmat1, distmat2 = inference_aligned_flipped(cfg, model, test_dataloader, num_query,
                                                                    use_local_feature, use_rerank, use_cross_feature)
 

@@ -11,6 +11,10 @@ import os.path as osp
 
 from .bases import ImageDataset
 
+def argsort(seq):
+    # http://stackoverflow.com/questions/3071415/efficient-method-to-calculate-the-rank-vector-of-a-list-in-python
+    return sorted(range(len(seq)), key=seq.__getitem__)
+
 
 class Competition1910(ImageDataset):
     """
@@ -34,8 +38,8 @@ class Competition1910(ImageDataset):
             self.query_dir = osp.join(self.dataset_dir, 'myval_query')
             self.gallery_dir = osp.join(self.dataset_dir, 'myval_gallery')
         else:
-            #self.train_dir = osp.join(self.dataset_dir, 'mytrain')
-            self.train_dir = osp.join(root, self.test_data_dir, 'myquery') # not used
+            self.train_dir = osp.join(self.dataset_dir, 'mytrain')    # not used
+            #self.train_dir = osp.join(root, self.test_data_dir, 'mytrain') # not used
             self.query_dir = osp.join(root, self.test_data_dir, 'myquery')
             self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery')
 
@@ -70,9 +74,10 @@ class Competition1910(ImageDataset):
         #print('dir_path', dir_path, 'img_paths', len(img_paths), img_paths[0])
         #pattern = re.compile(r'([-\d]+)_c(\d)')
 
+
         DEBUG = False
         if DEBUG:
-            img_paths = img_paths[:200]
+            img_paths = img_paths[:1000]
 
         pid_container = set()
         for img_path in img_paths:
@@ -84,10 +89,13 @@ class Competition1910(ImageDataset):
         pid2label = {pid: label for label, pid in enumerate(pid_container)}
 
         dataset = []
+
+        original_filenames = []
         for img_path in img_paths:
             #pid, camid = map(int, pattern.search(img_path).groups())
             pid = int(img_path.split('/')[-1].split('_')[0])
             camid = int(img_path.split('/')[-1].split('_')[1][:-4])
+            original_filenames.append(img_path.split('/')[-1].split('_')[1])
 
             if pid == -1:
                 continue  # junk images are just ignored
@@ -97,5 +105,11 @@ class Competition1910(ImageDataset):
             camid -= 1  # index starts from 0
             if relabel: pid = pid2label[pid]
             dataset.append((img_path, pid, camid))
+
+        # sort dataset items according to filename in ascending order
+        idx = argsort(original_filenames)
+        dataset = [dataset[i] for i in idx]
+
+        #print('dataset', dataset[:10])
 
         return dataset

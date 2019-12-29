@@ -17,7 +17,7 @@ from .transforms import build_transforms
 from .datasets import init_dataset
 
 
-def get_dataloader(cfg):
+def get_dataloader(cfg, return_sets=False):
     tng_tfms = build_transforms(cfg, is_train=True)
     val_tfms = build_transforms(cfg, is_train=False)
 
@@ -46,6 +46,10 @@ def get_dataloader(cfg):
     val_set = ImageDataset(query_names+gallery_names, val_tfms, relabel=False)
     val_dataloader = DataLoader(val_set, cfg.TEST.IMS_PER_BATCH, num_workers=num_workers, 
                                 collate_fn=fast_collate_fn, pin_memory=True)
+
+    if return_sets:
+        return tng_dataloader, val_dataloader, tng_set.c, len(query_names), tng_set, val_set
+
     return tng_dataloader, val_dataloader, tng_set.c, len(query_names)
 
 

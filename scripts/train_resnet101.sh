@@ -13,5 +13,5 @@ MODEL.BACKBONE 'resnet101' \
 MODEL.VERSION 'resnet101_ibn_bs63' \
 SOLVER.OPT 'adam' \
 SOLVER.LOSSTYPE '("softmax", "triplet")' \
-MODEL.PRETRAIN_PATH '/Users/tomheaven/.cache/torch/checkpoints/resnet101_ibn_a.pth.tar' \
+MODEL.PRETRAIN_PATH '/media/tomheaven/MacOS/Users/tomheaven/.cache/torch/checkpoints/resnet101_ibn_a.pth.tar' \
 #MODEL.CHECKPOINT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/sota/aligned_resnet101_ibn_bs63/ckpts/model_epoch90.pth' \
