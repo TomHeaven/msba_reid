@@ -30,16 +30,19 @@ class Competition1910(ImageDataset):
     dataset_dir = '复赛'
     test_data_dir = '复赛/测试集A'
 
-    def __init__(self, root, test_phase=False, **kwargs):
-        #super(Competition1910, self).__init__()
+    def __init__(self, root, test_phase=False, fine_tune=False, **kwargs):
+        #print('fine_tune', fine_tune)
         self.dataset_dir = osp.join(root, self.dataset_dir)
-        if not test_phase:
+        if fine_tune:
+            self.train_dir = osp.join(root, self.test_data_dir, 'fine_tune')
+            self.query_dir = osp.join(self.dataset_dir, 'myval_query')
+            self.gallery_dir = osp.join(self.dataset_dir, 'myval_gallery')
+        elif not test_phase:
             self.train_dir = osp.join(self.dataset_dir, 'mytrain')
             self.query_dir = osp.join(self.dataset_dir, 'myval_query')
             self.gallery_dir = osp.join(self.dataset_dir, 'myval_gallery')
         else:
             self.train_dir = osp.join(self.dataset_dir, 'mytrain')    # not used
-            #self.train_dir = osp.join(root, self.test_data_dir, 'mytrain') # not used
             self.query_dir = osp.join(root, self.test_data_dir, 'myquery')
             self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery')
 

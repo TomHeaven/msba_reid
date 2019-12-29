@@ -103,7 +103,7 @@ def main():
         json.dump(results, open('submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix), 'w'))
 
         # saving dist_mats
-        mat_path = '/Volumes/Data/比赛/行人重识别2019/dist_mats'
+        mat_path = 'dist_mats'
         if not os.path.isdir(mat_path):
             os.mkdir(mat_path)
         f = h5py.File('%s/test_%s_%s_%s.h5' % (mat_path, cfg.MODEL.NAME, strtime, suffix), 'w')

@@ -94,8 +94,8 @@ _C.DATASETS = CN()
 _C.DATASETS.NAMES = ("market1501",)
 # List of the dataset names for testing
 _C.DATASETS.TEST_NAMES = "market1501"
-_C.DATASETS.ROOT_DIR = ('/media/tomheaven/Data/比赛/行人重识别2019/data')
-_C.DATASETS.PRELOAD_IMAGE = True    # 是否将图像加载到内存
+_C.DATASETS.ROOT_DIR = ('../data')
+_C.DATASETS.PRELOAD_IMAGE = False    # 是否将图像加载到内存
 
 # -----------------------------------------------------------------------------
 # DataLoader
@@ -145,6 +145,8 @@ _C.SOLVER.EVAL_PERIOD = 50
 # see 2 images per batch
 _C.SOLVER.IMS_PER_BATCH = 64
 _C.SOLVER.LABEL_SMOOTH = False # Previous False
+
+_C.MODEL.FINE_TUNE = False # if True, resnet model only return bn_feat in training
 
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
 # see 2 images per batch

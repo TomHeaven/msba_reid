@@ -6,7 +6,7 @@ DATASETS.TEST_NAMES 'competition1910' \
 MODEL.NAME 'resnet101_ibn' \
 MODEL.BACKBONE 'resnet101' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/competition1910/resnet101_ibn_bs63/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/competition1910/sota/resnet101_ibn_bs63/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '16'
 
 #TEST.WEIGHT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/aligned_resnet101_ibn_bs63/ckpts/model_best.pth'

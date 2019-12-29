@@ -266,9 +266,7 @@ def re_ranking(original_dist, query_num, gallery_num, k1, k2, lambda_value, loca
         V_ind[i, :len(k_reciprocal_expansion_index)] = k_reciprocal_expansion_index
         V[i, :len(k_reciprocal_expansion_index)] = weight / np.sum(weight)
 
-    tmp = original_dist[:query_num, :].copy() # essential for saving memory
-    del original_dist # destory the big mat here
-    original_dist = tmp
+    original_dist = original_dist[:query_num, :] # essential for saving memory
 
     if k2 != 1:
         V_qe = np.zeros((all_num, all_num), dtype=np.float16)  # 9.51 GB memory

@@ -59,7 +59,10 @@ class ReidSystem():
         self.use_ddp = False
 
     def loss_fns(self, outputs, labels):
-        if self.cfg.SOLVER.TRIPLET_ONLY:
+        if self.cfg.MODEL.FINE_TUNE:
+            triplet_loss = self.triplet(outputs, labels)[0]
+            return {'global_triplet_loss': triplet_loss}
+        elif self.cfg.SOLVER.TRIPLET_ONLY:
             triplet_loss = self.triplet(outputs[1], labels)[0]
             return {'global_triplet_loss': triplet_loss}
         else:
@@ -106,7 +109,7 @@ class ReidSystem():
         # Load checkpoints
         cfg = self.cfg
         if cfg.MODEL.CHECKPOINT is not '':
-            self.load_checkpoint(cfg.MODEL.CHECKPOINT)
+            self.load_checkpoint(cfg.MODEL.CHECKPOINT, with_optimizer=not cfg.MODEL.FINE_TUNE)
             #self.logger.info('continue training')
         ######
 
@@ -272,6 +275,8 @@ class ReidSystem():
                     self.best_mAP = metric_dict['mAP']
                 else:
                     is_best = False
+
+                # always save the last checkpoint as the best
                 is_best = True
                 self.save_checkpoint(is_best)
 
@@ -298,21 +303,31 @@ class ReidSystem():
             best_filepath = os.path.join(self.model_save_dir, 'model_best.pth')
             shutil.copyfile(filepath, best_filepath)
 
-    def load_checkpoint(self, checkpoint_path):
+    def load_checkpoint(self, checkpoint_path, with_optimizer=True):
         ## load weights
         self.logger.info('Loading checkpoints from ' + checkpoint_path)
         state_dict = torch.load(checkpoint_path)
+
+        # remove missing keys
+        new_state_dict = state_dict.copy()
+        for k in state_dict:
+            if not k in self.model.state_dict():
+                new_state_dict.pop(k)
+                self.logger.info(f'Remove key {k} from checkpoint.')
+        state_dict = new_state_dict
+
         if self.use_dp:
             self.model.module.load_state_dict(state_dict)
         else:
             self.model.load_state_dict(state_dict)
 
         ## load optimizer
-        opt_path = checkpoint_path.replace('model_epoch', 'optimizer_epoch')
-        self.logger.info('Loading optimizer from ' + opt_path)
-        opt_dict = torch.load(opt_path)
-        self.opt = opt_dict['optimizer']
-        self.lr_sched = opt_dict['lr_scheduler']
-        self.start_epoch = opt_dict['epoch']
-        self.current_epoch = opt_dict['epoch']
-        #print('start_epoch', self.start_epoch)
+        if with_optimizer:
+            opt_path = checkpoint_path.replace('model_epoch', 'optimizer_epoch')
+            self.logger.info('Loading optimizer from ' + opt_path)
+            opt_dict = torch.load(opt_path)
+            self.opt = opt_dict['optimizer']
+            self.lr_sched = opt_dict['lr_scheduler']
+            self.start_epoch = opt_dict['epoch']
+            self.current_epoch = opt_dict['epoch']
+            #print('start_epoch', self.start_epoch)

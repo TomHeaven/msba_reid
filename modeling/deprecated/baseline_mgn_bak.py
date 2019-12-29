@@ -6,9 +6,9 @@
 
 from torch import nn
 
-from .backbones import *
-from .losses.cosface import AddMarginProduct
-from .utils import *
+from modeling.backbones import *
+from modeling.losses.cosface import AddMarginProduct
+from modeling.utils import *
 #from .backbones.resnext_ibn_a import resnext101_ibn_a
 
 __all__ =['Baseline',
