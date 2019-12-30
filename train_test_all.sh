@@ -1,8 +1,8 @@
-sh scripts/train_resnet101.sh
-sh scripts/test_saving_resnet101.sh
+#sh scripts/train_resnet101.sh
+#sh scripts/test_saving_resnet101.sh
 
-#sh scripts/train_resnext101.sh
-#sh scripts/test_saving_resnext101.sh
+sh scripts/train_resnext101.sh
+sh scripts/test_saving_resnext101.sh
 
 #sh scripts/train_mgn_resnet101.sh
 #sh scripts/test_saving_mgn_resnet101.sh

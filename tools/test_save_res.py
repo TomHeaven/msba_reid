@@ -100,20 +100,29 @@ def main():
             os.mkdir('submit')
 
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-        json.dump(results, open('submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix), 'w'))
+
+        ### For fine tune
+        strtime = 'ft'
+        ###
+
+        json_path = 'submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix)
+        json.dump(results, open(json_path, 'w'))
 
         # saving dist_mats
         mat_path = 'dist_mats'
         if not os.path.isdir(mat_path):
             os.mkdir(mat_path)
-        f = h5py.File('%s/test_%s_%s_%s.h5' % (mat_path, cfg.MODEL.NAME, strtime, suffix), 'w')
+        mat_path = '%s/test_%s_%s_%s.h5' % (mat_path, cfg.MODEL.NAME, strtime, suffix)
+        f = h5py.File(mat_path, 'w')
         f.create_dataset('dist_mat', data=distmat, compression='gzip')
 
-        if distmat1 is not None:
-            f.create_dataset('dist_mat1', data=distmat1, compression='gzip')
-        if distmat2 is not None:
-            f.create_dataset('dist_mat2', data=distmat2, compression='gzip')
+        #if distmat1 is not None:
+        #    f.create_dataset('dist_mat1', data=distmat1, compression='gzip')
+        #if distmat2 is not None:
+        #    f.create_dataset('dist_mat2', data=distmat2, compression='gzip')
         f.close()
+
+        return json_path, mat_path
 
 if __name__ == '__main__':
     main()
