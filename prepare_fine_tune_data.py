@@ -39,11 +39,11 @@ def prepare_fine_tune_data(json_path, dist_path, image_folder, thresh):
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser(description="ReID Baseline Inference")
-    parser.add_argument('--json_path', help="json_path", default='submit/reid_resnext101_ibn_ft_flip_rerank_cross.json')
-    parser.add_argument('--dist_path', help="dist_path", default='dist_mats/test_resnext101_ibn_ft_flip_rerank_cross.h5')
-    parser.add_argument('--image_folder', help="image_folder",
+    parser.add_argument('--json_path', type=str, help="json_path", default='submit/reid_resnext101_ibn_ft_flip_rerank_cross.json')
+    parser.add_argument('--dist_path', type=str, help="dist_path", default='dist_mats/test_resnext101_ibn_ft_flip_rerank_cross.h5')
+    parser.add_argument('--image_folder', type=str, help="image_folder",
                         default='../data/复赛/测试集A')
-    parser.add_argument('--thresh', help="threshold")
+    parser.add_argument('--thresh', type=float, help="threshold")
     args = parser.parse_args()
 
     json_path = args.json_path

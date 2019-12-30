@@ -13,6 +13,7 @@ import time
 
 import torch
 from torch.backends import cudnn
+import shutil
 
 sys.path.append('.')
 from config import cfg
@@ -28,6 +29,7 @@ def main():
         "--config_file", default="", help="path to config file", type=str
     )
     parser.add_argument('--test_phase', action='store_true', help="use cpu")
+    parser.add_argument('--fine_tune', action='store_true', help="fine tune")
     parser.add_argument("opts", help="Modify config options using the command-line", default=None,
                         nargs=argparse.REMAINDER)
 
@@ -50,6 +52,11 @@ def main():
     if args.config_file != "":
         logger.info("Loaded configuration file {}".format(args.config_file))
     logger.info("Running with config:\n{}".format(cfg))
+
+    #if not hasattr(args, 'fine_tune'):
+    #    args.fine_tune = False
+
+    logger.info("Is Fine tune " + str(args.fine_tune))
 
     cudnn.benchmark = True
 
@@ -102,11 +109,15 @@ def main():
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
 
         ### For fine tune
-        strtime = 'ft'
+        if args.fine_tune:
+            strtime = 'ft'
         ###
 
         json_path = 'submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, strtime, suffix)
         json.dump(results, open(json_path, 'w'))
+
+        if not args.fine_tune:
+            shutil.copy(json_path, 'submit/reid_%s_%s_%s.json' % (cfg.MODEL.NAME, 'ft', suffix))
 
         # saving dist_mats
         mat_path = 'dist_mats'
@@ -121,6 +132,9 @@ def main():
         #if distmat2 is not None:
         #    f.create_dataset('dist_mat2', data=distmat2, compression='gzip')
         f.close()
+
+        if not args.fine_tune:
+            shutil.copy(mat_path, '%s/test_%s_%s_%s.h5' % (mat_path, cfg.MODEL.NAME, 'ft', suffix))
 
         return json_path, mat_path
 
