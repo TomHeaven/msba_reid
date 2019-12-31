@@ -1,4 +1,4 @@
-export CUDA_VISIBLE_DEVICES='0'
+export CUDA_VISIBLE_DEVICES='1'
 
 python3 tools/test_save_res.py --test_phase --fine_tune -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'competition1910' \

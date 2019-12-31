@@ -22,13 +22,13 @@ def prepare_fine_tune_data(json_path, dist_path, image_folder, thresh):
         os.mkdir(write_dir)
 
     for idx, query_path in enumerate(tqdm.tqdm(results.keys())):
-        full_query_path = osp.join(image_folder, 'query_a', query_path)
+        full_query_path = osp.join(image_folder, 'query_b', query_path)
         shutil.copy(full_query_path, osp.join(image_folder, f'fine_tune_{thresh:.1f}', str(idx) + '_' + query_path))
 
         for i in range(200):
             if dist_mat[idx][indicies[idx, i]] < thresh:
                 gallery_path = results[query_path][i]
-                img_path = osp.join(image_folder, 'gallery_a', gallery_path)
+                img_path = osp.join(image_folder, 'gallery_b', gallery_path)
                 shutil.copy(img_path, osp.join(image_folder, f'fine_tune_{thresh:.1f}', str(idx) + '_' + gallery_path))
             else:
                 break
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--json_path', type=str, help="json_path", default='submit/reid_resnext101_ibn_ft_flip_rerank_cross.json')
     parser.add_argument('--dist_path', type=str, help="dist_path", default='dist_mats/test_resnext101_ibn_ft_flip_rerank_cross.h5')
     parser.add_argument('--image_folder', type=str, help="image_folder",
-                        default='../data/复赛/测试集A')
+                        default='../data/复赛/测试集B')
     parser.add_argument('--thresh', type=float, help="threshold")
     args = parser.parse_args()
 

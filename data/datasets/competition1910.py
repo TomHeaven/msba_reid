@@ -28,7 +28,7 @@ class Competition1910(ImageDataset):
     # images: 12936 (train) + 3368 (query) + 15913 (gallery)
     """
     dataset_dir = '复赛'
-    test_data_dir = '复赛/测试集A'
+    test_data_dir = '复赛/测试集B'
 
     def __init__(self, root, test_phase=False, fine_tune=False, **kwargs):
         #print('fine_tune', fine_tune)
