@@ -13,7 +13,7 @@ from data.prefetcher import data_prefetcher
 from utils.re_ranking import re_ranking, mem_saving_argsort
 from utils.distance import low_memory_local_dist, local_dist
 
-from .inference import compute_distmat
+from engine.inference import compute_distmat
 
 
 ############
