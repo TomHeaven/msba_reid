@@ -123,6 +123,15 @@ def main():
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         json.dump(results, open('submit/ensemble_%s_%dm.json' % (strtime, cnt), 'w'))
 
+        # saving dist_mats
+        mat_path = 'dist_mats'
+        if not os.path.isdir(mat_path):
+            os.mkdir(mat_path)
+        mat_path = '%s/ensemble_%s_%dm.h5' % (mat_path, strtime, cnt)
+        f = h5py.File(mat_path, 'w')
+        f.create_dataset('dist_mat', data=dist_mat, compression='gzip')
+        f.close()
+
 
 if __name__ == '__main__':
     main()
