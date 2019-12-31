@@ -40,6 +40,7 @@ _C.MODEL.PRETRAIN_PATH = ''
 _C.MODEL.CHECKPOINT = ''
 _C.MODEL.VERSION = ''
 _C.MODEL.OF_START_EPOCH = 33 # only used for OF module
+_C.MODEL.USE_PARTS = 2
 
 #
 # -----------------------------------------------------------------------------

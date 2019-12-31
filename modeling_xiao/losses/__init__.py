@@ -5,6 +5,6 @@
 """
 
 from .triplet_loss import TripletLoss
-from .loss import *
+#from .loss import *
 from .label_smooth import CrossEntropyLabelSmooth
-from .mvp_loss import MVPLoss
+#from .mvp_loss import MVPLoss

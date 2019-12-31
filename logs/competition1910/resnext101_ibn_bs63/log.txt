@@ -1,0 +1,91 @@
+2019-12-31 17:42:43,391 reid_baseline.train INFO: Using 1 GPUs.
+2019-12-31 17:42:43,392 reid_baseline.train INFO: Namespace(config_file='configs/softmax_triplet.yml', opts=['DATASETS.NAMES', '("competition1910",)', 'DATASETS.TEST_NAMES', 'competition1910', 'INPUT.SIZE_TRAIN', '[384, 192]', 'INPUT.SIZE_TEST', '[384, 192]', 'SOLVER.IMS_PER_BATCH', '66', 'MODEL.NAME', 'resnext101_ibn', 'MODEL.WITH_IBN', 'True', 'MODEL.BACKBONE', 'resnext101', 'MODEL.VERSION', 'resnext101_ibn_bs63', 'SOLVER.OPT', 'adam', 'SOLVER.LOSSTYPE', '("softmax", "triplet")', 'MODEL.PRETRAIN_PATH', '/Users/tomheaven/.cache/torch/checkpoints/resnext101_ibn_a.pth.tar'])
+2019-12-31 17:42:43,392 reid_baseline.train INFO: Loaded configuration file configs/softmax_triplet.yml
+2019-12-31 17:42:43,392 reid_baseline.train INFO: Running with config:
+DATALOADER:
+  MAX_INSTANCE: 50
+  NUM_INSTANCE: 3
+  NUM_WORKERS: 4
+  SAMPLER: triplet
+DATASETS:
+  NAMES: ('competition1910',)
+  PRELOAD_IMAGE: False
+  ROOT_DIR: ../data
+  TEST_NAMES: competition1910
+INPUT:
+  DO_FLIP: True
+  DO_LIGHTING: False
+  DO_PAD: True
+  DO_RE: True
+  FLIP_PROB: 0.5
+  MAX_LIGHTING: 0.2
+  PADDING: 10
+  PADDING_MODE: constant
+  PIXEL_MEAN: [0.2493, 0.2129, 0.167]
+  PIXEL_STD: [0.2679, 0.2071, 0.2105]
+  P_LIGHTING: 0.75
+  RE_PROB: 0.5
+  SIZE_TEST: [384, 192]
+  SIZE_TRAIN: [384, 192]
+MODEL:
+  BACKBONE: resnext101
+  CHECKPOINT: 
+  DIST_BACKEND: dp
+  FINE_TUNE: False
+  GCB:
+    ratio: 0.0625
+  LAST_STRIDE: 1
+  NAME: resnext101_ibn
+  OF_START_EPOCH: 33
+  PRETRAIN: True
+  PRETRAIN_PATH: /Users/tomheaven/.cache/torch/checkpoints/resnext101_ibn_a.pth.tar
+  STAGE_WITH_GCB: (False, False, False, False)
+  USE_PARTS: 2
+  VERSION: resnext101_ibn_bs63
+  WITH_IBN: True
+OUTPUT_DIR: logs/
+SOLVER:
+  BASE_LR: 0.0004
+  BIAS_LR_FACTOR: 1
+  DIST: False
+  EVAL_PERIOD: 10
+  GAMMA: 0.1
+  IMS_PER_BATCH: 66
+  LABEL_SMOOTH: False
+  LOG_INTERVAL: 30
+  LOSSTYPE: ('softmax', 'triplet')
+  MARGIN: 0.3
+  MAX_EPOCHS: 100
+  MOMENTUM: 0.9
+  OPT: adam
+  RHO: 0.0016
+  STEPS: (40, 70)
+  TRIPLET_ONLY: False
+  WARMUP_FACTOR: 0.01
+  WARMUP_ITERS: 10
+  WARMUP_METHOD: linear
+  WEIGHT_DECAY: 0.0005
+  WEIGHT_DECAY_BIAS: 0.0005
+TEST:
+  DISTMAT1: 
+  DISTMAT10: 
+  DISTMAT11: 
+  DISTMAT12: 
+  DISTMAT13: 
+  DISTMAT14: 
+  DISTMAT15: 
+  DISTMAT16: 
+  DISTMAT17: 
+  DISTMAT18: 
+  DISTMAT2: 
+  DISTMAT3: 
+  DISTMAT4: 
+  DISTMAT5: 
+  DISTMAT6: 
+  DISTMAT7: 
+  DISTMAT8: 
+  DISTMAT9: 
+  IMS_PER_BATCH: 16
+  NORM: True
+  WEIGHT: path
+2019-12-31 17:42:43,392 reid_baseline.train INFO: start training

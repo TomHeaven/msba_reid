@@ -17,7 +17,7 @@ from data import get_dataloader
 from data.datasets.eval_reid import evaluate
 from data.prefetcher import data_prefetcher
 from modeling_xiao import build_model
-from modeling_xiao.baseline import *
+from modeling_xiao.baseline_parts import *
 from modeling_xiao.losses import TripletLoss, CrossEntropyLabelSmooth
 from solver.build import make_lr_scheduler, make_optimizer
 from utils.meters import AverageMeter
@@ -28,15 +28,16 @@ class ReidSystem():
         self.cfg, self.logger, self.writer = cfg, logger, writer
         # Define dataloader
         self.tng_dataloader, self.val_dataloader, self.num_classes, self.num_query = get_dataloader(cfg)
+        logger.info('num_classes ' + str(self.num_classes))
         # networks
         self.model = build_model(cfg, self.num_classes)
-        self.base_type = self.model.base_type
+        #self.base_type = self.model.base_type
         # loss function
 
-        if cfg.SOLVER.LABEL_SMOOTH:
-            self.ce_loss = CrossEntropyLabelSmooth(self.num_classes)
-        else:
-            self.ce_loss = nn.CrossEntropyLoss()
+        #if cfg.SOLVER.LABEL_SMOOTH:
+        self.ce_loss = CrossEntropyLabelSmooth(self.num_classes)
+        #else:
+        #    self.ce_loss = nn.CrossEntropyLoss()
         self.triplet = TripletLoss(cfg.SOLVER.MARGIN)
 
 
@@ -57,36 +58,9 @@ class ReidSystem():
         self.use_ddp = False
 
     def loss_fns(self, outputs, labels):
-        if self.cfg.MODEL.FINE_TUNE:
-            triplet_loss = self.triplet(outputs, labels)
-            return {'global_triplet_loss': triplet_loss}
-        else:
-            ce_loss = self.ce_loss(outputs[0], labels)
-            triplet_loss = self.triplet(outputs[1], labels) * 0.4
-            return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
-
-    def aligned_loss_fns(self, outputs, labels):
-        """
-
-        :param outputs: [cls_score, global_feature, local_feature]
-        :param labels: person IDs
-        :return:
-        """
+        triplet_loss = self.triplet(outputs[1], labels) * 0.4
         ce_loss = self.ce_loss(outputs[0], labels)
-        global_triplet_loss, local_triplet_loss = self.aligned_triplet(outputs[1], labels, outputs[2])
-        #return {'ce_loss': ce_loss, 'globaltriplet': triplet_loss}
-        return {'ce_loss': ce_loss, 'global_triplet_loss': global_triplet_loss, 'local_triplet_loss': local_triplet_loss}
-
-    def mgn_loss_fns(self, outputs, labels):
-        triplet_loss = [self.triplet(output, labels)[0] for output in outputs[1]]
-        triplet_loss = sum(triplet_loss) / len(triplet_loss)
-
-        ce_loss = [self.ce_loss(output, labels) for output in outputs[2]]
-        ce_loss = sum(ce_loss) / len(ce_loss)
-
         return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
-
-
 
     def on_train_begin(self):
         self.start_epoch = 0
