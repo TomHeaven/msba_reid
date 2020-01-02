@@ -32,7 +32,7 @@ SOLVER:
 
 TEST:
   IMS_PER_BATCH: 16
-  WEIGHT: "path"
+  WEIGHT: ""
 
 
 

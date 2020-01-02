@@ -9,6 +9,7 @@ from torch import nn
 # from .losses import reidLoss
 
 def build_model(cfg, num_classes) -> nn.Module:
+	print('cfg.TEST.WEIGHT', cfg.TEST.WEIGHT)
 	if len(cfg.TEST.WEIGHT) > 0:
 		print('>>>>>>>>>>>>>Load model with from pre-trained model<<<<<<<<<<<<<<<')
 		print('>>>>>>>>>>>>>Only used in finetune or inference<<<<<<<<<<<<<<<')

@@ -40,6 +40,7 @@ _C.MODEL.PRETRAIN_PATH = ''
 _C.MODEL.CHECKPOINT = ''
 _C.MODEL.VERSION = ''
 _C.MODEL.OF_START_EPOCH = 33 # only used for OF module
+_C.MODEL.USE_PARTS = 2
 
 #
 # -----------------------------------------------------------------------------
@@ -95,7 +96,7 @@ _C.DATASETS.NAMES = ("market1501",)
 # List of the dataset names for testing
 _C.DATASETS.TEST_NAMES = "market1501"
 _C.DATASETS.ROOT_DIR = ('../data')
-_C.DATASETS.PRELOAD_IMAGE = False    # 是否将图像加载到内存
+_C.DATASETS.PRELOAD_IMAGE = True    # 是否将图像加载到内存
 
 # -----------------------------------------------------------------------------
 # DataLoader
