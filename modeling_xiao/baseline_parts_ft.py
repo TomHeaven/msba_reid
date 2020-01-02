@@ -32,8 +32,8 @@ class Baseline(nn.Module):
         except:
             print(f'not support {backbone} backbone')
 
-        if pretrain:
-            self.base.load_pretrain(model_path)
+        #if pretrain:
+        #    self.base.load_pretrain(model_path)
 
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.num_classes = num_classes

@@ -9,6 +9,6 @@ MODEL.BACKBONE 'resnext101' \
 MODEL.WITH_IBN 'True' \
 TEST.WEIGHT 'logs/competition1910/sota/resnext101_ibn_bs63/ckpts/model_best.pth' \
 DATASETS.PRELOAD_IMAGE 'False' \
-TEST.IMS_PER_BATCH 64
+TEST.IMS_PER_BATCH 128
 
 

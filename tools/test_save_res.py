@@ -134,7 +134,7 @@ def main():
         f.close()
 
         if not args.fine_tune:
-            shutil.copy(mat_path, '%s/test_%s_%s_%s.h5' % (mat_path, cfg.MODEL.NAME, 'ft', suffix))
+            shutil.copy(mat_path, '%s/test_%s_%s_%s.h5' % ('dist_mats', cfg.MODEL.NAME, 'ft', suffix))
 
         return json_path, mat_path
 

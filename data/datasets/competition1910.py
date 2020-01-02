@@ -80,7 +80,7 @@ class Competition1910(ImageDataset):
 
         DEBUG = False
         if DEBUG:
-            img_paths = img_paths[:1000]
+            img_paths = img_paths[:500]
 
         pid_container = set()
         for img_path in img_paths:

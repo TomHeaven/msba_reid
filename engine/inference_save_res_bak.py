@@ -33,8 +33,8 @@ def inference_aligned_flipped(
     model.eval()
 
     pids, camids = [], []
-    bn_gfs = []
-    bn_gfs_flipped = []
+    gfs, bn_gfs, lfs, bn_lfs = [], [], [], []
+    gfs_flipped, bn_gfs_flipped, lfs_flipped, bn_lfs_flipped = [], [], [], []
 
     test_prefetcher = data_prefetcher(test_dataloader, cfg)
     batch = test_prefetcher.next()
@@ -43,38 +43,57 @@ def inference_aligned_flipped(
         with torch.no_grad():
             ret = model(img)
             ret_flip = model(torch.flip(img, [3]))
-
-            if len(ret) == 2:
+            if len(ret) == 4:
+                gf, bn_gf, lf, bn_lf = ret
+                gff, bn_gff, lff, bn_lff = ret_flip
+            elif len(ret) == 2:
                 gf, bn_gf = ret
                 gff, bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
             elif ret is not tuple:
-                bn_gf = ret
-                bn_gff = ret_flip
+                gf = bn_gf = ret
+                gff = bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
             else:
-                # print('ret', ret.size())
+                #print('ret', ret.size())
                 raise Exception("Unknown model returns, length = ", len(ret))
 
         # 4 features
+        gfs.append(gf.cpu())
         bn_gfs.append(bn_gf.cpu())
 
+        if use_local_feature:
+            lfs.append(lf.cpu())
+            bn_lfs.append(bn_lf.cpu())
+
         # 4 features flipped
+        gfs_flipped.append(gff.cpu())
         bn_gfs_flipped.append(bn_gff.cpu())
+
+        if use_local_feature:
+            lfs_flipped.append(lff.cpu())
+            bn_lfs_flipped.append(bn_lff.cpu())
 
         pids.extend(pid.cpu().numpy())
         camids.extend(np.asarray(camid))
 
         batch = test_prefetcher.next()
 
-    distmat1 = None
+    distmat1 = distmat2 = None
     logger.info(f"use_cross_feature = {use_cross_feature}, use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
     if use_cross_feature:
         logger.info("Computing distmat with bn_gf (+ lf)")
-        distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, None, None, theta=0.45,
+        distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
                                use_local_feature=use_local_feature, use_rerank=use_rerank)
         distmat = distmat2
         #distmat = (distmat1 + distmat2) / 2
     else:
-        raise Exception('wrong feature!')
+        logger.info("Computing distmat with gf (+ bn_lf)")
+        distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
+                                   use_local_feature=use_local_feature, use_rerank=use_rerank)
+        distmat = distmat1
 
     score = distmat
     index = np.argsort(score, axis=1)  # from small to large

@@ -58,9 +58,13 @@ class ReidSystem():
         self.use_ddp = False
 
     def loss_fns(self, outputs, labels):
-        triplet_loss = self.triplet(outputs[1], labels) * 0.4
-        ce_loss = self.ce_loss(outputs[0], labels)
-        return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
+        if len(outputs) == 2:
+            triplet_loss = self.triplet(outputs[1], labels) * 0.4
+            ce_loss = self.ce_loss(outputs[0], labels)
+            return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
+        else:
+            triplet_loss = self.triplet(outputs, labels)
+            return {'global_triplet_loss': triplet_loss}
 
     def on_train_begin(self):
         self.start_epoch = 0

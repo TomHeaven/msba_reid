@@ -304,7 +304,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     """
     feats = torch.cat(feats, dim=0)
     feats_flipped = torch.cat(feats_flipped, dim=0)
-    if len(local_feats) > 0 and use_local_feature:
+    if local_feats is not None and len(local_feats) > 0 and use_local_feature:
         local_feats = torch.cat(local_feats, dim=0)
         local_feats_flipped = torch.cat(local_feats_flipped, dim=0)
 
@@ -321,7 +321,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     # query
     qf = feats[:num_query]
     qf_flipped = feats_flipped[:num_query]
-    if len(local_feats) > 0 and use_local_feature:
+    if local_feats is not None and len(local_feats) > 0 and use_local_feature:
         lqf = local_feats[:num_query]
         lqf_flipped = local_feats_flipped[:num_query]
 
@@ -331,7 +331,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     # gallery
     gf = feats[num_query:]
     gf_flipped = feats_flipped[num_query:]
-    if len(local_feats) > 0:
+    if local_feats is not None and len(local_feats) > 0:
         lgf = local_feats[num_query:]
         lgf_flipped = local_feats_flipped[num_query:]
     #g_pids = np.asarray(pids[num_query:])
@@ -344,7 +344,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
 
     if use_rerank:
         #print('len(local_feats)', len(local_feats))
-        if len(local_feats) > 0 and use_local_feature:
+        if local_feats is not None and len(local_feats) > 0 and use_local_feature:
             # if True:
             # calculate the local distance
             lqf = lqf.permute(0, 2, 1)
@@ -362,7 +362,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
                               only_local=False)
         del distmat, local_distmat1
 
-        if len(local_feats) > 0 and use_local_feature:
+        if  local_feats is not None and len(local_feats) > 0 and use_local_feature:
             # flipped
             lqf = lqf_flipped.permute(0, 2, 1)
             lgf = lgf_flipped.permute(0, 2, 1)
