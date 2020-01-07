@@ -79,6 +79,8 @@ def main():
                      ]
     # 加载dist_mats
     dist_mats = []
+    #weights= np.asarray([0.783, 0.776, 0.76])
+    #weights = weights / weights.sum()
 
     cnt = 0
     for distmat_path in distmat_paths:

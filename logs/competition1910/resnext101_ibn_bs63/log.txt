@@ -1,7 +1,7 @@
-2020-01-02 09:35:28,274 reid_baseline.train INFO: Using 1 GPUs.
-2020-01-02 09:35:28,274 reid_baseline.train INFO: Namespace(config_file='configs/softmax_triplet.yml', opts=['DATASETS.NAMES', '("competition1910",)', 'DATASETS.TEST_NAMES', 'competition1910', 'INPUT.SIZE_TRAIN', '[384, 192]', 'INPUT.SIZE_TEST', '[384, 192]', 'SOLVER.IMS_PER_BATCH', '42', 'MODEL.NAME', 'resnext101_ibn_xiao', 'MODEL.WITH_IBN', 'True', 'MODEL.BACKBONE', 'resnext101', 'MODEL.VERSION', 'resnext101_ibn_bs63', 'SOLVER.OPT', 'adam', 'SOLVER.LOSSTYPE', '("softmax", "triplet")', 'MODEL.FINE_TUNE', 'True', 'TEST.WEIGHT', 'logs/competition1910/sota/resnext101_ibn_xiao_bs63/ckpts/model_best.pth', 'SOLVER.BASE_LR', '4e-6', 'SOLVER.WARMUP_ITERS', '0', 'SOLVER.STEPS', '[100,200]', 'SOLVER.EVAL_PERIOD', '5', 'SOLVER.MAX_EPOCHS', '10'])
-2020-01-02 09:35:28,274 reid_baseline.train INFO: Loaded configuration file configs/softmax_triplet.yml
-2020-01-02 09:35:28,274 reid_baseline.train INFO: Running with config:
+2020-01-03 09:39:09,726 reid_baseline.train INFO: Using 1 GPUs.
+2020-01-03 09:39:09,727 reid_baseline.train INFO: Namespace(config_file='configs/softmax_triplet.yml', opts=['DATASETS.NAMES', '("competition1910",)', 'DATASETS.TEST_NAMES', 'competition1910', 'INPUT.SIZE_TRAIN', '[384, 192]', 'INPUT.SIZE_TEST', '[384, 192]', 'SOLVER.IMS_PER_BATCH', '42', 'MODEL.NAME', 'resnext101_ibn_xiao', 'MODEL.WITH_IBN', 'True', 'MODEL.BACKBONE', 'resnext101', 'MODEL.VERSION', 'resnext101_ibn_bs63', 'SOLVER.OPT', 'adam', 'SOLVER.LOSSTYPE', '("softmax", "triplet")', 'MODEL.FINE_TUNE', 'True', 'TEST.WEIGHT', 'logs/competition1910/sota/resnext101_ibn_xiao_bs63/ckpts/model_best.pth', 'SOLVER.BASE_LR', '4e-6', 'SOLVER.WARMUP_ITERS', '0', 'SOLVER.STEPS', '[100,200]', 'SOLVER.EVAL_PERIOD', '5', 'SOLVER.MAX_EPOCHS', '10'])
+2020-01-03 09:39:09,727 reid_baseline.train INFO: Loaded configuration file configs/softmax_triplet.yml
+2020-01-03 09:39:09,727 reid_baseline.train INFO: Running with config:
 DATALOADER:
   MAX_INSTANCE: 50
   NUM_INSTANCE: 3
@@ -9,7 +9,7 @@ DATALOADER:
   SAMPLER: triplet
 DATASETS:
   NAMES: ('competition1910',)
-  PRELOAD_IMAGE: False
+  PRELOAD_IMAGE: True
   ROOT_DIR: ../data
   TEST_NAMES: competition1910
 INPUT:
@@ -88,5 +88,25 @@ TEST:
   IMS_PER_BATCH: 16
   NORM: True
   WEIGHT: logs/competition1910/sota/resnext101_ibn_xiao_bs63/ckpts/model_best.pth
-2020-01-02 09:35:28,274 reid_baseline.train INFO: start training
-2020-01-02 09:35:29,346 reid_baseline.train INFO: num_classes 11273
+2020-01-03 09:39:09,727 reid_baseline.train INFO: start training
+2020-01-03 09:46:30,697 reid_baseline.train INFO: num_classes 11273
+2020-01-03 09:59:05,020 reid_baseline.train INFO: Epoch 1 Total loss: 5.318 CE loss: 0.000 GT loss: 5.318 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:31s
+2020-01-03 10:11:37,702 reid_baseline.train INFO: Epoch 2 Total loss: 4.023 CE loss: 0.000 GT loss: 4.023 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:32s
+2020-01-03 10:24:12,312 reid_baseline.train INFO: Epoch 3 Total loss: 3.696 CE loss: 0.000 GT loss: 3.696 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:34s
+2020-01-03 10:36:45,440 reid_baseline.train INFO: Epoch 4 Total loss: 3.501 CE loss: 0.000 GT loss: 3.501 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:32s
+2020-01-03 10:49:18,741 reid_baseline.train INFO: Epoch 5 Total loss: 3.360 CE loss: 0.000 GT loss: 3.360 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:32s
+2020-01-03 10:50:02,048 reid_baseline.train INFO: Test Results - Epoch: 5
+2020-01-03 10:50:02,048 reid_baseline.train INFO: mAP: 5.8%
+2020-01-03 10:50:02,048 reid_baseline.train INFO: CMC curve, Rank-1  :15.0%
+2020-01-03 10:50:02,048 reid_baseline.train INFO: CMC curve, Rank-5  :30.8%
+2020-01-03 10:50:02,048 reid_baseline.train INFO: CMC curve, Rank-10 :41.9%
+2020-01-03 11:02:40,701 reid_baseline.train INFO: Epoch 6 Total loss: 3.252 CE loss: 0.000 GT loss: 3.252 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:33s
+2020-01-03 11:15:13,928 reid_baseline.train INFO: Epoch 7 Total loss: 3.173 CE loss: 0.000 GT loss: 3.173 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:32s
+2020-01-03 11:27:47,527 reid_baseline.train INFO: Epoch 8 Total loss: 3.085 CE loss: 0.000 GT loss: 3.085 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:33s
+2020-01-03 11:40:20,684 reid_baseline.train INFO: Epoch 9 Total loss: 3.002 CE loss: 0.000 GT loss: 3.002 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:32s
+2020-01-03 11:52:55,664 reid_baseline.train INFO: Epoch 10 Total loss: 2.939 CE loss: 0.000 GT loss: 2.939 LT loss: 0.000 OF loss: 0.000 lr: 4.00e-06 During 12min:34s
+2020-01-03 11:53:33,824 reid_baseline.train INFO: Test Results - Epoch: 10
+2020-01-03 11:53:33,824 reid_baseline.train INFO: mAP: 8.1%
+2020-01-03 11:53:33,824 reid_baseline.train INFO: CMC curve, Rank-1  :13.2%
+2020-01-03 11:53:33,824 reid_baseline.train INFO: CMC curve, Rank-5  :33.5%
+2020-01-03 11:53:33,824 reid_baseline.train INFO: CMC curve, Rank-10 :50.2%
