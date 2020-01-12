@@ -17,6 +17,26 @@ from config import cfg
 from data import get_test_dataloader
 from utils.logger import setup_logger
 
+def query_constraint_dimstmat(distmat, k1=14, gamma=0.2):
+    """
+    线上ensemble + 0.1%
+    :param distmat:
+    :param k1:
+    :param gamma:
+    :return:
+    """
+    # 获得原始排序
+    index = distmat.argsort(axis=1)
+    # query惩罚距离
+    penalty_distmat = np.zeros_like(distmat, dtype=np.float16)
+    for i in range(distmat.shape[0]):
+        for j in range(k1):
+            g_idx = index[i, j]
+            # 如果某个g_idx到query i的距离在top k1范围内，惩罚g_idx到非query i的的距离
+            penalty_distmat[:, g_idx] += distmat[:, g_idx] * gamma / (j+1)
+            penalty_distmat[i, g_idx] -= distmat[i, g_idx] * gamma / (j+1)
+    return distmat + penalty_distmat
+
 
 def main():
     parser = argparse.ArgumentParser(description="ReID Baseline Inference")
@@ -72,11 +92,17 @@ def main():
         else:
             logger.info(f'Invalid checkpoint path {distmat_path}')
 
-    dist_mat = np.concatenate(dist_mats, axis=0).mean(axis=0)
-    score = dist_mat
-    index = np.argsort(score, axis=1)  # from small to large
-
     logger.info(f'Average {cnt} results')
+    dist_mat = np.concatenate(dist_mats, axis=0).mean(axis=0)
+
+    # 是否使用 query唯一性 假设 (可以+ 0.15%)
+    use_query_constraint = True
+    if use_query_constraint:
+        logger.info('Using query unique constraint ...')
+        dist_mat = query_constraint_dimstmat(dist_mat, k1=14, gamma=0.2)
+
+    index = np.argsort(dist_mat, axis=1)  # from small to large
+
     # saving results
     if args.test_phase:
         query_path = [t[0] for t in dataset.query]
@@ -95,7 +121,7 @@ def main():
 
         # 写入结果
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
-        json.dump(results, open('submit/ensemble_%s_%fm.json' % (strtime, cnt), 'w'))
+        json.dump(results, open('submit/ensemble_%s_%dm.json' % (strtime, cnt), 'w'))
 
 
 if __name__ == '__main__':

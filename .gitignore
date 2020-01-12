@@ -1,0 +1,11 @@
+.idea
+__pycache__
+.DS_Store
+.vscode
+csrc/eval_cylib/*.so
+logs/
+.ipynb_checkpoints
+dist_mats
+submit
+third_party
+*.out

@@ -3,6 +3,8 @@ Notice the input/output shape of methods, so that you can better understand
 the meaning of these methods."""
 import numpy as np
 import torch
+import time
+import sys
 
 def normalize(nparray, order=2, axis=0):
     """Normalize a N-D numpy array along the specified axis."""
@@ -37,94 +39,35 @@ def compute_dist(array1, array2, type='euclidean'):
 
 
 def shortest_dist(dist_mat):
-    """Parallel version.
+  """Parallel version.
   Args:
-    dist_mat: numpy array, available shape
+    dist_mat: pytorch Variable, available shape:
       1) [m, n]
       2) [m, n, N], N is batch size
       3) [m, n, *], * can be arbitrary additional dimensions
   Returns:
-    dist: three cases corresponding to `dist_mat`
+    dist: three cases corresponding to `dist_mat`:
       1) scalar
-      2) numpy array, with shape [N]
-      3) numpy array with shape [*]
+      2) pytorch Variable, with shape [N]
+      3) pytorch Variable, with shape [*]
   """
-    m, n = dist_mat.shape[:2]
-    dist = np.zeros_like(dist_mat)
-    for i in range(m):
-        for j in range(n):
-            if (i == 0) and (j == 0):
-                dist[i, j] = dist_mat[i, j]
-            elif (i == 0) and (j > 0):
-                dist[i, j] = dist[i, j - 1] + dist_mat[i, j]
-            elif (i > 0) and (j == 0):
-                dist[i, j] = dist[i - 1, j] + dist_mat[i, j]
-            else:
-                dist[i, j] = \
-                    np.min(np.stack([dist[i - 1, j], dist[i, j - 1]], axis=0), axis=0) \
-                    + dist_mat[i, j]
-    # I ran into memory disaster when returning this reference! I still don't
-    # know why.
-    # dist = dist[-1, -1]
-    dist = dist[-1, -1].copy()
-    return dist
+  m, n = dist_mat.size()[:2]
+  # Just offering some reference for accessing intermediate distance.
+  dist = [[0 for _ in range(n)] for _ in range(m)]
+  for i in range(m):
+    for j in range(n):
+      if (i == 0) and (j == 0):
+        dist[i][j] = dist_mat[i, j]
+      elif (i == 0) and (j > 0):
+        dist[i][j] = dist[i][j - 1] + dist_mat[i, j]
+      elif (i > 0) and (j == 0):
+        dist[i][j] = dist[i - 1][j] + dist_mat[i, j]
+      else:
+        dist[i][j] = torch.min(dist[i - 1][j], dist[i][j - 1]) + dist_mat[i, j]
+  dist = dist[-1][-1]
+  return dist
 
-def unaligned_dist(dist_mat):
-    """Parallel version.
-    Args:
-      dist_mat: numpy array, available shape
-        1) [m, n]
-        2) [m, n, N], N is batch size
-        3) [m, n, *], * can be arbitrary additional dimensions
-    Returns:
-      dist: three cases corresponding to `dist_mat`
-        1) scalar
-        2) numpy array, with shape [N]
-        3) numpy array with shape [*]
-    """
-
-    m = dist_mat.shape[0]
-    dist = np.zeros_like(dist_mat[0])
-    for i in range(m):
-        dist[i] = dist_mat[i][i]
-    dist = np.sum(dist, axis=0).copy()
-    return dist
-
-
-def meta_local_dist(x, y, aligned):
-    """
-  Args:
-    x: numpy array, with shape [m, d]
-    y: numpy array, with shape [n, d]
-  Returns:
-    dist: scalar
-  """
-    eu_dist = compute_dist(x, y, 'euclidean')
-    dist_mat = (np.exp(eu_dist) - 1.) / (np.exp(eu_dist) + 1.)
-    if aligned:
-        dist = shortest_dist(dist_mat[np.newaxis])[0]
-    else:
-        dist = unaligned_dist(dist_mat[np.newaxis])[0]
-    return dist
-
-
-# Tooooooo slow!
-def serial_local_dist(x, y):
-    """
-  Args:
-    x: numpy array, with shape [M, m, d]
-    y: numpy array, with shape [N, n, d]
-  Returns:
-    dist: numpy array, with shape [M, N]
-  """
-    M, N = x.shape[0], y.shape[0]
-    dist_mat = np.zeros([M, N])
-    for i in range(M):
-        for j in range(N):
-            dist_mat[i, j] = meta_local_dist(x[i], y[j])
-    return dist_mat
-
-def parallel_local_dist(x, y, aligned):
+def local_dist(x, y, aligned):
     """Parallel version.
   Args:
     x: numpy array, with shape [M, m, d]
@@ -132,11 +75,11 @@ def parallel_local_dist(x, y, aligned):
   Returns:
     dist: numpy array, with shape [M, N]
   """
-    M, m, d = x.shape
-    N, n, d = y.shape
+    M, m, d = x.size()
+    N, n, d = y.size()
 
-    x = torch.tensor(x).cuda()
-    y = torch.tensor(y).cuda()
+    #x = torch.tensor(x).cuda()
+    #y = torch.tensor(y).cuda()
 
     x = x.view(M*m, d)
     y = y.view(N*n, d)
@@ -154,23 +97,12 @@ def parallel_local_dist(x, y, aligned):
 
     # shape [M * m, N * n] -> [M, m, N, n] -> [m, n, M, N]
     dist_mat = dist_mat.reshape([M, m, N, n]).permute([1, 3, 0, 2])
-    dist_mat = dist_mat.cpu().numpy()
     # shape [M, N]
     if aligned:
         dist_mat = shortest_dist(dist_mat)
     else:
-        dist_mat = unaligned_dist(dist_mat)
+        raise Exception("Only aligned dist is implemented!")
     return dist_mat
-
-
-def local_dist(x, y, aligned):
-    if (x.ndim == 2) and (y.ndim == 2):
-        return meta_local_dist(x, y, aligned)
-    elif (x.ndim == 3) and (y.ndim == 3):
-        return parallel_local_dist(x, y, aligned)
-    else:
-        raise NotImplementedError('Input shape not supported.')
-
 
 def low_memory_matrix_op(
         func,
@@ -200,8 +132,6 @@ def low_memory_matrix_op(
   """
 
     if verbose:
-        import sys
-        import time
         printed = False
         st = time.time()
         last_time = time.time()
@@ -237,3 +167,93 @@ def low_memory_local_dist(x, y, aligned=True):
     y_num_splits = int(len(y) / slice_size) + 1
     z = low_memory_matrix_op(local_dist, x, y, 0, 0, x_num_splits, y_num_splits, verbose=True, aligned=aligned)
     return z
+
+
+
+def compute_local_distmat_using_gpu(probFea, galFea, memory_save=True, mini_batch=2000):
+    print('Computing distance using GPU ...')
+    feat = torch.cat([probFea, galFea]).cuda()
+    all_num = probFea.size(0) + galFea.size(0)
+    if memory_save:
+        distmat = torch.zeros((all_num, all_num), dtype=torch.float16)  # 14 GB memory on Round2
+        i = 0
+        while True:
+            it = i + mini_batch
+            # print('i, it', i, it)
+            if it < feat.size()[0]:
+                distmat[i:it, :] = torch.pow(torch.cdist(feat[i:it, :], feat), 2)
+            else:
+                distmat[i:, :] = torch.pow(torch.cdist(feat[i:, :], feat), 2)
+                break
+            i = it
+    else:
+        ### new API
+        distmat = torch.pow(torch.cdist(feat, feat), 2)
+
+    # print('Copy distmat to original_dist ...')
+    original_dist = distmat.numpy()  # 14 GB memory
+    del distmat
+    del feat
+    return original_dist
+
+
+def fast_local_dist(x, y, aligned=True, verbose=True):
+    print('Computing local distance...')
+
+    slice_size = 200 # old 200
+
+    if verbose:
+        #import sys
+
+        printed = False
+        st = time.time()
+        last_time = time.time()
+
+    x = torch.tensor(x, dtype=torch.float32)
+    y = torch.tensor(y, dtype=torch.float32)
+
+    feat = torch.cat([x, y]).cuda()
+    all_num = feat.size(0)
+
+    mat = np.zeros((all_num, all_num), dtype=np.float16)
+
+    x_num_splits = int(all_num / slice_size) + 1
+    y_num_splits = int(all_num / slice_size) + 1
+
+    pi = 0
+    for i, part_x in enumerate(torch.split(feat, slice_size, dim=0)):
+        # move to cuda
+        dx = part_x.size(0)
+        pj = 0
+        for j, part_y in enumerate(torch.split(feat, slice_size, dim=0)):
+            # move to cuda
+            dy = part_y.size(0)
+            #print('dx, dy', dx, dy)
+            # compute using gpu
+            #print('part_x', part_x.size(), 'part_y', part_y.size())
+            part_mat = local_dist(part_x, part_y, aligned)
+            #print('part_mat', part_mat.size())
+            # fetch result
+            part_mat = part_mat.cpu().numpy()
+
+            mat[pi:pi+dx, pj:pj+dy] = part_mat
+            pj += dy
+
+            if verbose:
+                if not printed:
+                    printed = True
+                else:
+                    # Clean the current line
+                    sys.stdout.write("\033[F\033[K")
+                print('Matrix part ({}, {}) / ({}, {}), +{:.2f}s, total {:.2f}s'
+                    .format(i + 1, j + 1, x_num_splits, y_num_splits,
+                            time.time() - last_time, time.time() - st))
+                last_time = time.time()
+
+        pi += dx
+
+    return mat
+
+
+
+

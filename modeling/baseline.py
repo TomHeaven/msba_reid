@@ -11,12 +11,14 @@ from .losses.cosface import AddMarginProduct
 from .utils import *
 #from .backbones.resnext_ibn_a import resnext101_ibn_a
 
-__all__ =['Baseline', 'BASE_RESNET50', 'BASE_RESNET101', 'BASE_RESNEXT101',
+__all__ =['Baseline',
+          'BASE_RESNET50', 'BASE_RESNET101', 'BASE_RESNEXT101',
           'BASE_RESNET101_ABD', 'BASE_RESNEXT101_ABD',
           'BASE_MPNCOV_RESNET101', 'BASE_ALIGNED_RESNET50', 'BASE_ALIGNED_RESNET101',
           'BASE_ALIGNED_RESNEXT101', 'BASE_ALIGNED_RESNEXT50', 'BASE_ALIGNED_SE_RESNET101', 'BASE_ALIGNED_DENSENET169',
           'BASE_ALIGNED_RESNET50_ABD', 'BASE_ALIGNED_RESNET101_ABD', 'BASE_ALIGNED_RESNEXT101_ABD',
-          'BASE_ALIGNED_MPNCOV_RESNET50', 'BASE_ALIGNED_MPNCOV_RESNET101', 'BASE_ALIGNED_MPNCOV_RESNEXT101']
+          'BASE_ALIGNED_MPNCOV_RESNET50', 'BASE_ALIGNED_MPNCOV_RESNET101', 'BASE_ALIGNED_MPNCOV_RESNEXT101',
+          'MGN_RESNET50','MGN_RESNET101', 'MGN_RESNEXT101']
 
 BASE_RESNET50 = 0
 BASE_RESNET101 = 20
@@ -39,6 +41,11 @@ BASE_ALIGNED_RESNEXT101_ABD = 9
 BASE_ALIGNED_MPNCOV_RESNET50 = 10
 BASE_ALIGNED_MPNCOV_RESNET101 = 11
 BASE_ALIGNED_MPNCOV_RESNEXT101 = 12
+
+
+MGN_RESNET50 = 30
+MGN_RESNET101 = 31
+MGN_RESNEXT101 = 32
 
 
 class Baseline(nn.Module):
@@ -77,6 +84,17 @@ class Baseline(nn.Module):
                 self.base_type = BASE_MPNCOV_RESNET101
                 self.base = mpncovresnet101(False, last_stride, with_ibn, gcb, stage_with_gcb)
             ########################################
+            ## mgn
+            elif backbone == 'mgn_resnet50':
+                self.base_type = MGN_RESNET101
+                self.base = MGN(model_path, num_classes, 'resnet50', last_stride, with_ibn, gcb, stage_with_gcb, with_abd=False)
+            elif backbone == 'mgn_resnet101':
+                self.base_type = MGN_RESNET101
+                self.base = MGN(model_path, num_classes, 'resnet101', last_stride, with_ibn, gcb, stage_with_gcb, with_abd=False)
+            elif backbone == 'mgn_resnext101':
+                self.base_type = MGN_RESNEXT101
+                self.base = MGN(model_path, num_classes, 'resnet101', last_stride, with_ibn, gcb, stage_with_gcb, with_abd=False)
+            #########
             ## 加 aligned
             elif backbone == 'aligned_resnet50':
                 self.base_type = BASE_ALIGNED_RESNET50
@@ -130,22 +148,29 @@ class Baseline(nn.Module):
         if pretrain:
             self.base.load_pretrain(model_path)
 
-        self.gap = nn.AdaptiveAvgPool2d(1)
-        self.num_classes = num_classes
+        if self.base_type not in [MGN_RESNET50, MGN_RESNET101, MGN_RESNEXT101]:
+        #if True:
+            self.gap = nn.AdaptiveAvgPool2d(1)
+            self.gmp = nn.AdaptiveMaxPool2d(1)
+            self.num_classes = num_classes
 
-        self.bottleneck = nn.BatchNorm1d(self.in_planes)
-        self.bottleneck.bias.requires_grad_(False)  # no shift
-        self.classifier = nn.Linear(self.in_planes, self.num_classes, bias=False)
-        # self.classifier = AddMarginProduct(self.in_planes, self.num_classes, s=20, m=0.3)
+            self.bottleneck = nn.BatchNorm1d(self.in_planes)
+            self.bottleneck.bias.requires_grad_(False)  # no shift
+            self.classifier = nn.Linear(self.in_planes, self.num_classes, bias=False)
 
-        self.bottleneck.apply(weights_init_kaiming)
-        self.classifier.apply(weights_init_classifier)
+            self.bottleneck.apply(weights_init_kaiming)
+            self.classifier.apply(weights_init_classifier)
 
     def forward(self, x, label=None):
 
         if self.base_type in [BASE_MPNCOV_RESNET101]:
         ### global only (mpncov)
             global_feat = self.base(x)  # mpncov doesnot need self.gap to reduce features
+        elif self.base_type in [MGN_RESNET50, MGN_RESNET101, MGN_RESNEXT101]:
+            # mgn is independent
+            return self.base(x)
+            # use mgn as global feature
+            #global_feat = self.base(x)
         elif self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101,
         ### aligned
                                 BASE_ALIGNED_RESNEXT50,
@@ -175,7 +200,8 @@ class Baseline(nn.Module):
             global_feat = self.gap(global_feat)  # (b, 2048, 1, 1)
         else:
         ### global only
-            global_feat = self.gap(self.base(x))  # (b, 2048, 1, 1)
+            x = self.base(x)
+            global_feat = self.gap(x) + self.gmp(x)  # (b, 2048, 1, 1)
 
         global_feat = global_feat.view(global_feat.shape[0], -1)  # flatten to (bs, 2048)
 
@@ -215,6 +241,17 @@ class Baseline(nn.Module):
         #     k = '.'.join(k.split('.')[1:])
         #     new_state_dict[k] = v
         # state_dict = new_state_dict
-        state_dict.pop('classifier.weight')
+
+        #if 'classifier.weight' in state_dict:
+        #    state_dict.pop('classifier.weight')
+
+        new_state_dict = state_dict.copy()
+        for k in state_dict.keys():
+            if k =='classifier.weight' or k.startswith('base.fc_id_') or k.startswith('base.classfier') or k.startswith('base.classifier'):
+                new_state_dict.pop(k)
+        state_dict = new_state_dict
+
         res = self.load_state_dict(state_dict, strict=False)
-        assert str(res.missing_keys) == str(['classifier.weight',]), 'issue loading pretrained weights'
+        #assert str(res.missing_keys) == str(['classifier.weight',]), 'issue loading pretrained weights'
+        print('missing_keys', res.missing_keys)
+

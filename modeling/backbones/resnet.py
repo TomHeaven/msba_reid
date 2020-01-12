@@ -37,11 +37,10 @@ __all__ = ['ResNet', 'Bottleneck', 'ResNet_ABD']
 
 class IBN(nn.Module):
     """
-    IBN with BN:IN = 7:1
+    IBN with BN:IN = 1:1
     """
     def __init__(self, planes):
         super(IBN, self).__init__()
-        #half1 = int(planes/8)
         half1 = int(planes/2)
         self.half = half1
         half2 = planes - half1
@@ -107,7 +106,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, last_stride, with_ibn, gcb, stage_with_gcb, block, layers, with_abd=False):
+    def __init__(self, last_stride, with_ibn, gcb, stage_with_gcb, block, layers, with_abd=False, with_layer3=False):
         scale = 64
         self.inplanes = scale
         super().__init__()
@@ -125,6 +124,7 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, scale*8, layers[3], stride=last_stride, 
                                        gcb=gcb if stage_with_gcb[3] else None)
 
+        self.with_layer3 = with_layer3
         self.with_abd = with_abd
         if self.with_abd:
             self.shallow_cam = ShallowCAM(256)
@@ -172,7 +172,11 @@ class ResNet(nn.Module):
         ####
         x = self.layer2(x)
         x = self.layer3(x)
+        x3 = x
         x = self.layer4(x)
+
+        if self.with_layer3:
+            return x3, x
 
         # print('resnet_ibn x', x.size())
         if self.with_abd and self.training:
