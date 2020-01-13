@@ -40,6 +40,7 @@ _C.MODEL.PRETRAIN_PATH = ''
 _C.MODEL.CHECKPOINT = ''
 _C.MODEL.VERSION = ''
 _C.MODEL.OF_START_EPOCH = 33 # only used for OF module
+_C.MODEL.USE_PARTS = 2
 
 #
 # -----------------------------------------------------------------------------
@@ -94,7 +95,11 @@ _C.DATASETS = CN()
 _C.DATASETS.NAMES = ("market1501",)
 # List of the dataset names for testing
 _C.DATASETS.TEST_NAMES = "market1501"
+<<<<<<< HEAD
 _C.DATASETS.ROOT_DIR = ('/Volumes/Data/比赛/行人重识别2019/data')
+=======
+_C.DATASETS.ROOT_DIR = ('../data')
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 _C.DATASETS.PRELOAD_IMAGE = True    # 是否将图像加载到内存
 
 # -----------------------------------------------------------------------------
@@ -115,7 +120,8 @@ _C.SOLVER = CN()
 _C.SOLVER.DIST = False
 
 _C.SOLVER.OPT = "adam"
-
+_C.SOLVER.TRIPLET_ONLY = False
+_C.SOLVER.RHO = 1.6e-3
 _C.SOLVER.LOSSTYPE = ("softmax",)
 
 _C.SOLVER.MAX_EPOCHS = 50
@@ -145,6 +151,8 @@ _C.SOLVER.EVAL_PERIOD = 50
 _C.SOLVER.IMS_PER_BATCH = 64
 _C.SOLVER.LABEL_SMOOTH = False # Previous False
 
+_C.MODEL.FINE_TUNE = False # if True, resnet model only return bn_feat in training
+
 # This is global, so if we have 8 GPUs and IMS_PER_BATCH = 16, each GPU will
 # see 2 images per batch
 _C.TEST = CN()
@@ -173,4 +181,8 @@ _C.TEST.DISTMAT18 = ""
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
+<<<<<<< HEAD
 _C.OUTPUT_DIR = "/Volumes/Data/比赛/行人重识别2019/logs/"
+=======
+_C.OUTPUT_DIR = "logs/"
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b

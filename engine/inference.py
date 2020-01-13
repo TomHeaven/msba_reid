@@ -304,7 +304,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     """
     feats = torch.cat(feats, dim=0)
     feats_flipped = torch.cat(feats_flipped, dim=0)
-    if len(local_feats) > 0 and use_local_feature:
+    if local_feats is not None and len(local_feats) > 0 and use_local_feature:
         local_feats = torch.cat(local_feats, dim=0)
         local_feats_flipped = torch.cat(local_feats_flipped, dim=0)
 
@@ -321,7 +321,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     # query
     qf = feats[:num_query]
     qf_flipped = feats_flipped[:num_query]
-    if len(local_feats) > 0 and use_local_feature:
+    if local_feats is not None and len(local_feats) > 0 and use_local_feature:
         lqf = local_feats[:num_query]
         lqf_flipped = local_feats_flipped[:num_query]
 
@@ -331,7 +331,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     # gallery
     gf = feats[num_query:]
     gf_flipped = feats_flipped[num_query:]
-    if len(local_feats) > 0:
+    if local_feats is not None and len(local_feats) > 0:
         lgf = local_feats[num_query:]
         lgf_flipped = local_feats_flipped[num_query:]
     #g_pids = np.asarray(pids[num_query:])
@@ -344,7 +344,11 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
 
     if use_rerank:
         #print('len(local_feats)', len(local_feats))
+<<<<<<< HEAD
         if len(local_feats) > 0 and use_local_feature:
+=======
+        if local_feats is not None and len(local_feats) > 0 and use_local_feature:
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
             # if True:
             # calculate the local distance
             lqf = lqf.permute(0, 2, 1)
@@ -362,7 +366,7 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
                               only_local=False)
         del distmat, local_distmat1
 
-        if len(local_feats) > 0 and use_local_feature:
+        if  local_feats is not None and len(local_feats) > 0 and use_local_feature:
             # flipped
             lqf = lqf_flipped.permute(0, 2, 1)
             lgf = lgf_flipped.permute(0, 2, 1)
@@ -470,8 +474,13 @@ def inference_aligned_flipped(
     g_camids = np.asarray(camids[num_query:])
 
     logger.info(f"use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
+<<<<<<< HEAD
 
 
+=======
+
+
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
     logger.info("Computing distmat with bn_gf")
     distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
                                    use_local_feature=use_local_feature, use_rerank=use_rerank)
@@ -490,6 +499,65 @@ def inference_aligned_flipped(
         for r in [1, 5, 10]:
             logger.info(f"CMC curve, Rank-{r:<3}:{cmc[r - 1]:.1%}")
         logger.info(f"Score: {(mAP + cmc[0]) / 2.:.1%}")
+<<<<<<< HEAD
+=======
+
+    #return bn_gf, bn_gff
+
+def inference_ssg(
+        cfg,
+        model,
+        test_dataloader,
+):
+    """
+    inference an aligned net with flipping and two pairs of global feature and local feature
+    :param cfg:
+    :param model:
+    :param test_dataloader:
+    :param num_query:
+    :return:
+    """
+    logger = logging.getLogger("reid_baseline.inference")
+    logger.info("Start inferencing aligned with flipping")
+
+    model.eval()
+
+    pids, camids = [], []
+    bn_gfs = []
+
+    test_prefetcher = data_prefetcher(test_dataloader, cfg)
+    batch = test_prefetcher.next()
+    while batch[0] is not None:
+        img, pid, camid = batch
+        with torch.no_grad():
+            ret = model(img)
+            ret_flip = model(torch.flip(img, [3]))
+            if len(ret) == 4:
+                gf, bn_gf, lf, bn_lf = ret
+                gff, bn_gff, lff, bn_lff = ret_flip
+            elif len(ret) == 2:
+                gf, bn_gf = ret
+                gff, bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
+            elif ret is not tuple:
+                gf = bn_gf = ret
+                gff = bn_gff = ret_flip
+                lf, bn_lf = None, None
+                lff, bn_lff = None, None
+            else:
+                # print('ret', ret.size())
+                raise Exception("Unknown model returns, length = ", len(ret))
+
+        bn_gfs.append(bn_gf.cpu() + bn_gff.cpu())
+        pids.extend(pid.cpu().numpy())
+        #camids.extend(np.asarray(camid))
+        batch = test_prefetcher.next()
+
+    feats = torch.cat(bn_gfs, dim=0)
+    feats = F.normalize(feats, p=2, dim=1)
+    return feats
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 
 
 

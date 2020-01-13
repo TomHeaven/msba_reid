@@ -7,6 +7,9 @@ sh scripts/test_saving_resnet101.sh
 #sh scripts/train_mgn_resnet101.sh
 #sh scripts/test_saving_mgn_resnet101.sh
 
+#sh scripts/train_mgn_resnet101.sh
+#sh scripts/test_saving_mgn_resnet101.sh
+
 #sh scripts/train_aligned_resnet101.sh
 #sh scripts/test_saving_aligned_resnet101.sh
 

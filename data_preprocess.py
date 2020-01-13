@@ -138,15 +138,15 @@ def split_myval(data_dir):
     print('gallery', len(gallery), gallery)
 
 if __name__ == '__main__':
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛'
+    data_dir = '../data/复赛'
     list_file = 'train_list.txt'
-    preprocess_train(data_dir, list_file)
-    split_myval(data_dir)
+    #preprocess_train(data_dir, list_file)
+    #split_myval(data_dir)
 
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛/测试集A'
-    #preprocess_query(data_dir, sub_dir='query_a')
+    data_dir = '../data/复赛/测试集B'
+    preprocess_query(data_dir, sub_dir='query_b')
 
 
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛/测试集A'
-    #preprocess_gallery(data_dir, sub_dir='gallery_a')
+    data_dir = '../data/复赛/测试集B'
+    preprocess_gallery(data_dir, sub_dir='gallery_b')
 

@@ -20,7 +20,8 @@ def build_model(cfg, num_classes) -> nn.Module:
         cfg.MODEL.GCB, 
         cfg.MODEL.STAGE_WITH_GCB, 
         cfg.MODEL.PRETRAIN, 
-        cfg.MODEL.PRETRAIN_PATH)
+        cfg.MODEL.PRETRAIN_PATH,
+        cfg.MODEL.FINE_TUNE)
     return model
 
 

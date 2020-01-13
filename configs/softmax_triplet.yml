@@ -15,14 +15,13 @@ DATALOADER:
 SOLVER:
   OPT: "adam"
   LOSSTYPE: ('softmax', 'triplet')
-  MAX_EPOCHS: 120
-  #BASE_LR: 0.00035 # old
+  MAX_EPOCHS: 100 # old 120
   BASE_LR: 0.0004
   WEIGHT_DECAY: 0.0005
   WEIGHT_DECAY_BIAS: 0.0005
   IMS_PER_BATCH: 63 # old 64
 
-  STEPS: [40, 90]
+  STEPS: [40, 70] # old [40, 90]
   GAMMA: 0.1
 
   WARMUP_FACTOR: 0.01
@@ -32,8 +31,13 @@ SOLVER:
   EVAL_PERIOD: 10
 
 TEST:
+<<<<<<< HEAD
   IMS_PER_BATCH: 8
   WEIGHT: "path"
+=======
+  IMS_PER_BATCH: 16
+  WEIGHT: ""
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 
 
 

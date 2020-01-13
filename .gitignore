@@ -9,3 +9,8 @@ dist_mats
 submit
 third_party
 *.out
+<<<<<<< HEAD
+=======
+*.pyc
+*/__pychache__/*
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b

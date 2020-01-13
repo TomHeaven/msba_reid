@@ -59,7 +59,8 @@ class Baseline(nn.Module):
                  gcb, 
                  stage_with_gcb,
                  pretrain=True, 
-                 model_path=''):
+                 model_path='',
+                 fine_tune=False):
         super().__init__()
         #try:
         if True:
@@ -145,21 +146,23 @@ class Baseline(nn.Module):
         #except:
         #    print(f'not support {backbone} backbone')
 
-        if pretrain:
+        self.fine_tune = fine_tune
+        if pretrain and not self.fine_tune:
             self.base.load_pretrain(model_path)
 
         if self.base_type not in [MGN_RESNET50, MGN_RESNET101, MGN_RESNEXT101]:
         #if True:
             self.gap = nn.AdaptiveAvgPool2d(1)
-            self.gmp = nn.AdaptiveMaxPool2d(1)
             self.num_classes = num_classes
 
             self.bottleneck = nn.BatchNorm1d(self.in_planes)
             self.bottleneck.bias.requires_grad_(False)  # no shift
-            self.classifier = nn.Linear(self.in_planes, self.num_classes, bias=False)
-
             self.bottleneck.apply(weights_init_kaiming)
-            self.classifier.apply(weights_init_classifier)
+
+            if not self.fine_tune:
+                self.classifier = nn.Linear(self.in_planes, self.num_classes, bias=False)
+                self.classifier.apply(weights_init_classifier)
+
 
     def forward(self, x, label=None):
 
@@ -201,14 +204,16 @@ class Baseline(nn.Module):
         else:
         ### global only
             x = self.base(x)
-            global_feat = self.gap(x) + self.gmp(x)  # (b, 2048, 1, 1)
+            global_feat = self.gap(x) # (b, 2048, 1, 1)
+
 
         global_feat = global_feat.view(global_feat.shape[0], -1)  # flatten to (bs, 2048)
 
         bn_global_feat = self.bottleneck(global_feat)  # normalize for angular softmax
 
         if self.training:
-            cls_score = self.classifier(bn_global_feat)
+            if not self.fine_tune:
+                cls_score = self.classifier(bn_global_feat)
             if self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
                                   BASE_ALIGNED_DENSENET169, BASE_ALIGNED_SE_RESNET101,
                                   BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101, BASE_ALIGNED_MPNCOV_RESNEXT101]:
@@ -221,6 +226,9 @@ class Baseline(nn.Module):
                 return cls_score, global_feat, f_dict
             else:
                 ### global only
+                if self.fine_tune:
+                    return bn_global_feat
+
                 return cls_score, global_feat
         else:
             if self.base_type in [BASE_ALIGNED_RESNET50,  BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,

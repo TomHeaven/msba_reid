@@ -79,6 +79,8 @@ def main():
                      ]
     # 加载dist_mats
     dist_mats = []
+    #weights= np.asarray([0.783, 0.776, 0.76])
+    #weights = weights / weights.sum()
 
     cnt = 0
     for distmat_path in distmat_paths:
@@ -122,6 +124,18 @@ def main():
         # 写入结果
         strtime = time.strftime("%Y%m%d_%H%M%S", time.localtime())
         json.dump(results, open('submit/ensemble_%s_%dm.json' % (strtime, cnt), 'w'))
+<<<<<<< HEAD
+=======
+
+        # saving dist_mats
+        mat_path = 'dist_mats'
+        if not os.path.isdir(mat_path):
+            os.mkdir(mat_path)
+        mat_path = '%s/ensemble_%s_%dm.h5' % (mat_path, strtime, cnt)
+        f = h5py.File(mat_path, 'w')
+        f.create_dataset('dist_mat', data=dist_mat, compression='gzip')
+        f.close()
+>>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 
 
 if __name__ == '__main__':
