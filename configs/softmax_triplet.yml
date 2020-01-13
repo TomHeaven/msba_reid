@@ -10,7 +10,7 @@ DATASETS:
 
 DATALOADER:
   SAMPLER: 'triplet'
-  NUM_INSTANCE: 3 # old 4
+  NUM_INSTANCE: 4 # 4 for paper & 3 for competition1910
 
 SOLVER:
   OPT: "adam"
@@ -31,13 +31,8 @@ SOLVER:
   EVAL_PERIOD: 10
 
 TEST:
-<<<<<<< HEAD
-  IMS_PER_BATCH: 8
-  WEIGHT: "path"
-=======
-  IMS_PER_BATCH: 16
+  IMS_PER_BATCH: 32
   WEIGHT: ""
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 
 
 

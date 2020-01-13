@@ -95,11 +95,8 @@ _C.DATASETS = CN()
 _C.DATASETS.NAMES = ("market1501",)
 # List of the dataset names for testing
 _C.DATASETS.TEST_NAMES = "market1501"
-<<<<<<< HEAD
-_C.DATASETS.ROOT_DIR = ('/Volumes/Data/比赛/行人重识别2019/data')
-=======
+#_C.DATASETS.ROOT_DIR = ('/Volumes/Data/比赛/行人重识别2019/data')
 _C.DATASETS.ROOT_DIR = ('../data')
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 _C.DATASETS.PRELOAD_IMAGE = True    # 是否将图像加载到内存
 
 # -----------------------------------------------------------------------------
@@ -181,8 +178,7 @@ _C.TEST.DISTMAT18 = ""
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
-<<<<<<< HEAD
-_C.OUTPUT_DIR = "/Volumes/Data/比赛/行人重识别2019/logs/"
-=======
+
+#_C.OUTPUT_DIR = "/Volumes/Data/比赛/行人重识别2019/logs/"
 _C.OUTPUT_DIR = "logs/"
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
+
