@@ -1,5 +1,5 @@
-sh scripts/train_resnet101.sh
-sh scripts/test_saving_resnet101.sh
+sh scripts/train_resnet50_xiao.sh
+#sh scripts/val_resnet50_xiao.sh
 
 #sh scripts/train_resnext101.sh
 #sh scripts/test_saving_resnext101.sh

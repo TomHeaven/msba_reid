@@ -2,15 +2,11 @@
 GPUS='0,1'
 
 CUDA_VISIBLE_DEVICES=$GPUS python3 tools/train_xiao.py -cfg='configs/softmax_triplet.yml' \
-#DATASETS.NAMES '("competition1910",)'  \
-#DATASETS.TEST_NAMES 'competition1910' \
-#INPUT.SIZE_TRAIN '[384, 192]' \
-#INPUT.SIZE_TEST '[384, 192]' \
-SOLVER.IMS_PER_BATCH '66' \
+SOLVER.IMS_PER_BATCH '64' \
 MODEL.NAME 'resnet101_ibn_xiao' \
 MODEL.WITH_IBN 'True' \
 MODEL.BACKBONE 'resnet50' \
-MODEL.VERSION 'resnet50_ibn_xiao_bs63' \
+MODEL.VERSION 'resnet50_ibn_xiao_bs64' \
 SOLVER.OPT 'adam' \
 SOLVER.LOSSTYPE '("softmax", "triplet")' \
 MODEL.PRETRAIN_PATH '/home/tomheaven/.cache/torch/checkpoints/resnet50_ibn_a.pth.tar' \

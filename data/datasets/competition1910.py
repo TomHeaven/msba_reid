@@ -43,10 +43,6 @@ class Competition1910(ImageDataset):
             self.gallery_dir = osp.join(self.dataset_dir, 'myval_gallery')
         else:
             self.train_dir = osp.join(self.dataset_dir, 'mytrain')    # not used
-<<<<<<< HEAD
-            #self.train_dir = osp.join(root, self.test_data_dir, 'mytrain') # not used
-=======
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
             self.query_dir = osp.join(root, self.test_data_dir, 'myquery')
             self.gallery_dir = osp.join(root, self.test_data_dir, 'mygallery')
 
@@ -84,11 +80,7 @@ class Competition1910(ImageDataset):
 
         DEBUG = False
         if DEBUG:
-<<<<<<< HEAD
             img_paths = img_paths[:1000]
-=======
-            img_paths = img_paths[:500]
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 
         pid_container = set()
         for img_path in img_paths:
