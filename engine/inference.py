@@ -344,11 +344,8 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
 
     if use_rerank:
         #print('len(local_feats)', len(local_feats))
-<<<<<<< HEAD
-        if len(local_feats) > 0 and use_local_feature:
-=======
+
         if local_feats is not None and len(local_feats) > 0 and use_local_feature:
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
             # if True:
             # calculate the local distance
             lqf = lqf.permute(0, 2, 1)
@@ -473,36 +470,30 @@ def inference_aligned_flipped(
     g_pids = np.asarray(pids[num_query:])
     g_camids = np.asarray(camids[num_query:])
 
-    logger.info(f"use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
-<<<<<<< HEAD
+    logger.info(f"use_cross_feature = {use_cross_feature}, use_local_feature = {use_local_feature}, use_rerank = {use_rerank}")
 
-
-=======
-
-
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
-    logger.info("Computing distmat with bn_gf")
-    distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
+    if use_cross_feature:
+        logger.info("Computing distmat with bn_gf (+ lf)")
+        distmat2 = compute_distmat(cfg, num_query, bn_gfs, bn_gfs_flipped, lfs, lfs_flipped, theta=0.45,
                                    use_local_feature=use_local_feature, use_rerank=use_rerank)
-
-
-    logger.info("Computing distmat with gf + bn_lf")
-    distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
+        distmat = distmat2
+        #distmat = (distmat1 + distmat2) / 2
+    else:
+        logger.info("Computing distmat with gf + bn_lf")
+        distmat1 = compute_distmat(cfg, num_query, gfs, gfs_flipped, bn_lfs, bn_lfs_flipped, theta=0.95,
                                    use_local_feature=use_local_feature, use_rerank=use_rerank)
+        distmat = distmat1
+        #distmat1 = None
+        #distmat2 = None
 
-    for theta in np.linspace(0, 1, 21):
-        #theta = 0.55
-        distmat = distmat1 * (1 - theta) + distmat2 * theta
+    #distmat = original_distmat
+    #distmat[:, new_gallery_index] = distmat1 - 100
 
-        cmc, mAP = evaluate(distmat, q_pids, g_pids, q_camids, g_camids)
-        logger.info(f"theta: {theta:.2%} mAP: {mAP:.1%}")
-        for r in [1, 5, 10]:
-            logger.info(f"CMC curve, Rank-{r:<3}:{cmc[r - 1]:.1%}")
-        logger.info(f"Score: {(mAP + cmc[0]) / 2.:.1%}")
-<<<<<<< HEAD
-=======
-
-    #return bn_gf, bn_gff
+    cmc, mAP = evaluate(distmat, q_pids, g_pids, q_camids, g_camids)
+    logger.info(f"mAP: {mAP:.1%}")
+    for r in [1, 5, 10]:
+        logger.info(f"CMC curve, Rank-{r:<3}:{cmc[r - 1]:.1%}")
+    logger.info(f"Score: {(mAP + cmc[0]) / 2.:.1%}")
 
 def inference_ssg(
         cfg,
@@ -557,7 +548,6 @@ def inference_ssg(
     feats = torch.cat(bn_gfs, dim=0)
     feats = F.normalize(feats, p=2, dim=1)
     return feats
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
 
 
 

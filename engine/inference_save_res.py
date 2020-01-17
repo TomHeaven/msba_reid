@@ -43,23 +43,6 @@ def inference_aligned_flipped(
         with torch.no_grad():
             ret = model(img)
             ret_flip = model(torch.flip(img, [3]))
-<<<<<<< HEAD
-            if len(ret) == 4:
-                gf, bn_gf, lf, bn_lf = ret
-                gff, bn_gff, lff, bn_lff = ret_flip
-            elif len(ret) == 2:
-                gf, bn_gf = ret
-                gff, bn_gff = ret_flip
-                lf, bn_lf = None, None
-                lff, bn_lff = None, None
-            elif ret is not tuple:
-                gf = bn_gf = ret
-                gff = bn_gff = ret_flip
-                lf, bn_lf = None, None
-                lff, bn_lff = None, None
-            else:
-                #print('ret', ret.size())
-=======
 
             if len(ret) == 2:
                 gf, bn_gf = ret
@@ -69,7 +52,6 @@ def inference_aligned_flipped(
                 bn_gff = ret_flip
             else:
                 # print('ret', ret.size())
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
                 raise Exception("Unknown model returns, length = ", len(ret))
 
         # 4 features
