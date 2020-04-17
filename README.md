@@ -3,7 +3,7 @@
 
 `National University of Defense Technology, China`
 
-This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets up to 2020.02. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping, and the model does not take advantage of temporal information.
+This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets as of Feb, 2020. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping, and the model does not take advantage of temporal information. Besides, the computation complexity of the network backbone should not be greater than Resnet-50.
 
 The model proposed by the paper is named MSBA (Multiple Scales, Branches and Attention) network. Details and tricks are available at [our paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718).
 
@@ -36,7 +36,7 @@ cd msba_reid
 ```shell
 cd csrc/eval_cylib; make
 ```
-+ Prepare datasets at `../data` folder and set the path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
++ Prepare the datasets at `../data` folder and set the path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
 + Prepare pretrained IBN-resnet50 weights from this [repo](https://github.com/XingangPan/IBN-Net) and place it at `~/.torch/checkpoints/resnet50-ibn-a.pth`.
 + Run 
 ```shell
