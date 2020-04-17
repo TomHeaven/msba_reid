@@ -26,7 +26,7 @@ cd reid2019
 ```shell
 cd csrc/eval_cylib; make
 ```
-+ Prepare datasets at `../data` folder and set it path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
++ Prepare datasets at `../data` folder and set the path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
 + Prepare pretrained IBN-resnet50 weights from this [repo](https://github.com/XingangPan/IBN-Net) and place it at `~/.torch/checkpoints/resnet50-ibn-a.pth`.
 + Run 
 ```shell
