@@ -14,7 +14,7 @@ The model proposed by the paper is named MSBA (Multiple Scales, Branches and Att
 | Datasets | Model | Image Size | mAP | R1 | Score | mAP (Re-rank+flip) | R1 (Re-rank+flip) | Score (Re-rank+flip) |
 |--|--|--|--|--|--|--|--|--|
 | market1501 | MSBA-a	| 384x128 | 89.0 |	95.8 |	92.4 |	92.5 |	95.7 |	94.7 |
-| DukeMTMC-reID | MSBA-a | 384x128 |	~~79.8~~  80.2 | ~~89.7~~ 90.8	| 85.5	| 86.2 | 91.1 | 88.7 |
+| DukeMTMC-reID | MSBA-a | 384x128 |	~~79.8~~  80.2 | ~~89.7~~ 90.8	| ~~84.8~~ 85.5	| 86.2 | 91.1 | 88.7 |
 | CUHK03(Detected) | MSBA-b | 384x128 |75.9 |	78.5 |	77.2 |	88.9 |	87.7 |	88.3 |
 | MSMT17 | MSBA-a | 384x128 | 59.0    | 75.3	|  67.1  |   66.2  |    77.5  |  71.8 |
 | MSMT17 | MSBA-a | 384x192 | 60.2    | 76.1	|  68.2  |   estimating  |     estimating |  estimating |
