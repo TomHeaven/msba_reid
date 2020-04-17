@@ -1,7 +1,7 @@
 # MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification
 `Hanlin Tan ; Huaxin Xiao ; Xiaoyu Zhang ; Bin Dai ; Shiming Lai ; Yu Liu ; Maojun Zhang`
 
-`National Unverisity of Defense Technology, China`
+`National University of Defense Technology, China`
 
 This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets up to 2020.02. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping, and the model does not take advantage of temporal information.
 
