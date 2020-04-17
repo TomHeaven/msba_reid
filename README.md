@@ -19,8 +19,8 @@ Performance on the four datasets are available where score is the average of mAP
 # Training
 + Clone the repo:
 ```shell
-git clone --depth 1 https://github.com/TomHeaven/reid2019
-cd reid2019
+git clone --depth 1 https://github.com/TomHeaven/msba_reid
+cd msba_reid
 ```
 + Compile Cython codes:
 ```shell
