@@ -11,6 +11,11 @@ The model proposed by the paper is named MMNet (Muti-scale, Multi-branch Network
 
 Performance on the four datasets are available:
 
+![market1501](https://github.com/TomHeaven/reid2019/blob/paper/readme/market1501.png "Comparison on Market1501")
+![duke](https://github.com/TomHeaven/reid2019/blob/paper/readme/market1501.png "Comparison on DukeMTMC-reID")
+![cuhk03](https://github.com/TomHeaven/reid2019/blob/paper/readme/market1501.png "Comparison on CUHK03(Detected)")
+![msmt17](https://github.com/TomHeaven/reid2019/blob/paper/readme/msmt17.png "Comparison on MSMT1501")
+
 
 
 
