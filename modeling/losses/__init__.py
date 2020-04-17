@@ -5,6 +5,6 @@
 """
 
 from .triplet_loss import TripletLoss
-from .loss import *
-from .aligned_losses import TripletLossAlignedReID, CrossEntropyLabelSmooth
-from .of_penalty import OFPenalty
+#from .loss import *
+from .label_smooth import CrossEntropyLabelSmooth
+#from .mvp_loss import MVPLoss

@@ -10,13 +10,13 @@ DATASETS:
 
 DATALOADER:
   SAMPLER: 'triplet'
-  NUM_INSTANCE: 4 # 4 for paper & 3 for competition1910
+  NUM_INSTANCE: 4 # 4 for market1501 and duke & 3 for competition1910
 
 SOLVER:
   OPT: "adam"
   LOSSTYPE: ('softmax', 'triplet')
   MAX_EPOCHS: 100 # old 120
-  BASE_LR: 0.0004
+  BASE_LR: 0.0004   # old 0.00035
   WEIGHT_DECAY: 0.0005
   WEIGHT_DECAY_BIAS: 0.0005
   IMS_PER_BATCH: 64 # old 64

@@ -61,6 +61,9 @@ _C.INPUT.FLIP_PROB = 0.5
 #_C.INPUT.PIXEL_MEAN = [0.406, 0.456, 0.485] # 原来训练的模型使用此参数(R<G<B)
 #_C.INPUT.PIXEL_STD = [0.225, 0.224, 0.229]  # 原来训练的模型使用此参数(RGB)
 
+_C.INPUT.PIXEL_MEAN = [0.485, 0.456, 0.406] # In order(B>G>R)
+_C.INPUT.PIXEL_STD = [0.229, 0.224, 0.225]  
+
 # 新模型直接使用BGR参数。 （初赛）
 # Values to be used for image normalization
 #_C.INPUT.PIXEL_MEAN = [0.213, 0.183, 0.097] # in order B>G>R
@@ -70,9 +73,9 @@ _C.INPUT.FLIP_PROB = 0.5
 
 # 新模型直接使用BGR参数。（复赛）
 # Values to be used for image normalization
-_C.INPUT.PIXEL_MEAN = [0.2493, 0.2129, 0.167] # in order B>G>R
+#_C.INPUT.PIXEL_MEAN = [0.2493, 0.2129, 0.167] # in order B>G>R
 # Values to be used for image normalization
-_C.INPUT.PIXEL_STD = [0.2679, 0.2071, 0.2105]  # in order BGR
+#_C.INPUT.PIXEL_STD = [0.2679, 0.2071, 0.2105]  # in order BGR
 
 ##########################################################
 # Value of padding size
@@ -108,7 +111,7 @@ _C.DATALOADER.SAMPLER = 'softmax'
 # Number of instance for each person
 _C.DATALOADER.NUM_INSTANCE = 4
 _C.DATALOADER.NUM_WORKERS = 4 # old 8
-_C.DATALOADER.MAX_INSTANCE = 50
+_C.DATALOADER.MAX_INSTANCE = 100 # 50 for competition Round B
 
 # ---------------------------------------------------------------------------- #
 # Solver

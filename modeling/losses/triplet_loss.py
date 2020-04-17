@@ -107,54 +107,27 @@ class TripletLoss(nn.Module):
     def __init__(self, margin=None):
         super().__init__()
         self.margin = margin
-        if margin is not None:
-            self.ranking_loss = nn.MarginRankingLoss(margin=margin)
-        else:
-            self.ranking_loss = nn.SoftMarginLoss()
+        self.ranking_loss = nn.MarginRankingLoss(margin=margin)
 
-    def forward(self, global_feat, labels, normalize_feature=False):
-        if normalize_feature:
-            global_feat = normalize(global_feat, axis=-1)
-
-        dist_mat = euclidean_dist(global_feat, global_feat)
-        dist_ap, dist_an = hard_example_mining(dist_mat, labels)
+    def _forward(self, feat, label):
+        dist_mat = euclidean_dist(feat, feat)
+        dist_ap, dist_an = hard_example_mining(dist_mat, label)
         y = dist_an.new().resize_as_(dist_an).fill_(1)
 
-        if self.margin is not None:
-            loss = self.ranking_loss(dist_an, dist_ap, y)
-        else:
-            loss = self.ranking_loss(dist_an - dist_ap, y)
-        return loss, dist_ap, dist_an
-
-
-
-class CrossEntropyLabelSmooth(nn.Module):
-    """Cross entropy loss with label smoothing regularizer.
-
-    Reference:
-    Szegedy et al. Rethinking the Inception Architecture for Computer Vision. CVPR 2016.
-    Equation: y = (1 - epsilon) * y + epsilon / K.
-
-    Args:
-        num_classes (int): number of classes.
-        epsilon (float): weight.
-    """
-    def __init__(self, num_classes, epsilon=0.1, use_gpu=True):
-        super(CrossEntropyLabelSmooth, self).__init__()
-        self.num_classes = num_classes
-        self.epsilon = epsilon
-        self.use_gpu = use_gpu
-        self.logsoftmax = nn.LogSoftmax(dim=1)
-
-    def forward(self, inputs, targets):
-        """
-        Args:
-            inputs: prediction matrix (before softmax) with shape (batch_size, num_classes)
-            targets: ground truth labels with shape (num_classes)
-        """
-        log_probs = self.logsoftmax(inputs)
-        targets = torch.zeros(log_probs.size()).scatter_(1, targets.unsqueeze(1).data.cpu(), 1)
-        if self.use_gpu: targets = targets.cuda()
-        targets = (1 - self.epsilon) * targets + self.epsilon / self.num_classes
-        loss = (- targets * log_probs).mean(0).sum()
+        loss = self.ranking_loss(dist_an, dist_ap, y)
         return loss
+
+
+    def forward(self, inputs, labels):
+        if not isinstance(inputs, tuple):
+            inputs_tuple = (inputs,)
+        else:
+            inputs_tuple = inputs
+
+        total_loss = self._forward(inputs_tuple[0], labels)
+        for i in range(1, len(inputs_tuple)):
+            total_loss = total_loss + self._forward(inputs_tuple[i], labels)
+
+        return total_loss / len(inputs_tuple)
+
+   

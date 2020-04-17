@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
-@author:  l1aoxingyu
-@contact: sherlockliao01@gmail.com
+@author:  Hanlin Tan & Huaxin Xiao & Xiaoyu Zhang
+@contact: hanlin_tan@nudt.edu.cn
 """
 
 import os
@@ -16,9 +16,9 @@ from torch import nn
 from data import get_dataloader
 from data.datasets.eval_reid import evaluate
 from data.prefetcher import data_prefetcher
-from modeling import build_model
-from modeling.baseline import *
-from modeling.losses import TripletLoss, TripletLossAlignedReID, CrossEntropyLabelSmooth, OFPenalty
+from modeling_xiao import build_model
+from modeling_xiao.baseline_parts import *
+from modeling_xiao.losses import TripletLoss, CrossEntropyLabelSmooth
 from solver.build import make_lr_scheduler, make_optimizer
 from utils.meters import AverageMeter
 
@@ -28,18 +28,17 @@ class ReidSystem():
         self.cfg, self.logger, self.writer = cfg, logger, writer
         # Define dataloader
         self.tng_dataloader, self.val_dataloader, self.num_classes, self.num_query = get_dataloader(cfg)
+        logger.info('num_classes ' + str(self.num_classes))
         # networks
         self.model = build_model(cfg, self.num_classes)
-        self.base_type = self.model.base_type
+        #self.base_type = self.model.base_type
         # loss function
 
-        if cfg.SOLVER.LABEL_SMOOTH:
-            self.ce_loss = CrossEntropyLabelSmooth(self.num_classes)
-        else:
-            self.ce_loss = nn.CrossEntropyLoss()
+        #if cfg.SOLVER.LABEL_SMOOTH:
+        self.ce_loss = CrossEntropyLabelSmooth(self.num_classes)
+        #else:
+        #    self.ce_loss = nn.CrossEntropyLoss()
         self.triplet = TripletLoss(cfg.SOLVER.MARGIN)
-        self.aligned_triplet = TripletLossAlignedReID(margin=cfg.SOLVER.MARGIN)
-        self.of_penalty = OFPenalty(beta=1e-6, penalty_position=['intermediate'])
 
 
         # optimizer and scheduler
@@ -59,39 +58,13 @@ class ReidSystem():
         self.use_ddp = False
 
     def loss_fns(self, outputs, labels):
-        if self.cfg.MODEL.FINE_TUNE:
-            triplet_loss = self.triplet(outputs, labels)[0]
-            return {'global_triplet_loss': triplet_loss}
-        elif self.cfg.SOLVER.TRIPLET_ONLY:
-            triplet_loss = self.triplet(outputs[1], labels)[0]
-            return {'global_triplet_loss': triplet_loss}
-        else:
+        if len(outputs) == 2:
+            triplet_loss = self.triplet(outputs[1], labels) * 0.4
             ce_loss = self.ce_loss(outputs[0], labels)
-            triplet_loss = self.triplet(outputs[1], labels)[0]
             return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
-
-    def aligned_loss_fns(self, outputs, labels):
-        """
-
-        :param outputs: [cls_score, global_feature, local_feature]
-        :param labels: person IDs
-        :return:
-        """
-        ce_loss = self.ce_loss(outputs[0], labels)
-        global_triplet_loss, local_triplet_loss = self.aligned_triplet(outputs[1], labels, outputs[2])
-        #return {'ce_loss': ce_loss, 'globaltriplet': triplet_loss}
-        return {'ce_loss': ce_loss, 'global_triplet_loss': global_triplet_loss, 'local_triplet_loss': local_triplet_loss}
-
-    def mgn_loss_fns(self, outputs, labels):
-        triplet_loss = [self.triplet(output, labels)[0] for output in outputs[1]]
-        triplet_loss = sum(triplet_loss) / len(triplet_loss)
-
-        ce_loss = [self.ce_loss(output, labels) for output in outputs[2]]
-        ce_loss = sum(ce_loss) / len(ce_loss)
-
-        return {'ce_loss': ce_loss, 'global_triplet_loss': triplet_loss}
-
-
+        else:
+            triplet_loss = self.triplet(outputs, labels)
+            return {'global_triplet_loss': triplet_loss}
 
     def on_train_begin(self):
         self.start_epoch = 0
@@ -139,22 +112,7 @@ class ReidSystem():
         inputs, labels, _ = batch
         outputs = self.model(inputs, labels)
 
-        if self.base_type in [BASE_ALIGNED_RESNET50, BASE_ALIGNED_RESNET101, BASE_ALIGNED_RESNEXT101, BASE_ALIGNED_RESNEXT50,
-                              BASE_ALIGNED_SE_RESNET101, BASE_ALIGNED_DENSENET169,
-                              BASE_ALIGNED_MPNCOV_RESNET50, BASE_ALIGNED_MPNCOV_RESNET101, BASE_ALIGNED_MPNCOV_RESNEXT101]:
-            loss_dict = self.aligned_loss_fns(outputs, labels)
-        elif self.base_type in [BASE_ALIGNED_RESNET50_ABD, BASE_ALIGNED_RESNET101_ABD, BASE_ALIGNED_RESNEXT101_ABD]:
-            loss_dict = self.aligned_loss_fns(outputs[:3], labels)
-            if self.current_epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
-                loss_dict['of_loss'] = self.of_penalty(outputs[3])
-        elif self.base_type in [BASE_RESNET101_ABD, BASE_RESNEXT101_ABD]:
-            loss_dict = self.loss_fns(outputs, labels)
-            if self.current_epoch >= self.cfg.MODEL.OF_START_EPOCH:  # 从第33个Epoch加of
-                loss_dict['of_loss'] = self.of_penalty(outputs[2])
-        elif self.base_type in [MGN_RESNET50, MGN_RESNET101, MGN_RESNEXT101]:
-            loss_dict = self.mgn_loss_fns(outputs, labels)
-        else:
-            loss_dict = self.loss_fns(outputs, labels)
+        loss_dict = self.loss_fns(outputs, labels)
 
         total_loss = 0
         print_str = f'\r Epoch {self.current_epoch} Iter {self.batch_nb}/{len(self.tng_dataloader)} '
@@ -275,11 +233,8 @@ class ReidSystem():
                     self.best_mAP = metric_dict['mAP']
                 else:
                     is_best = False
-<<<<<<< HEAD
-=======
 
                 # always save the last checkpoint as the best
->>>>>>> 831158247ed116e82a9ed285e25974abdfbf755b
                 is_best = True
                 self.save_checkpoint(is_best)
 

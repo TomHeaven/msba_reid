@@ -23,15 +23,33 @@ class CrossEntropyLabelSmooth(nn.Module):
         self.epsilon = epsilon
         self.logsoftmax = nn.LogSoftmax(dim=1)
 
-    def forward(self, inputs, targets):
-        """
-        Args:
-            inputs: prediction matrix (before softmax) with shape (batch_size, num_classes)
-            targets: ground truth labels with shape (num_classes)
-        """
+
+    def _forward(self, inputs, targets):
         log_probs = self.logsoftmax(inputs)
         targets = torch.zeros(log_probs.size()).scatter_(1, targets.unsqueeze(1).data.cpu(), 1)
         targets = targets.to(inputs.device)
         targets = (1 - self.epsilon) * targets + self.epsilon / self.num_classes
         loss = (-targets * log_probs).mean(0).sum()
         return loss
+
+
+    def forward(self, inputs, targets):
+        """
+        Args:
+            inputs: prediction matrix (before softmax) with shape (batch_size, num_classes)
+            targets: ground truth labels with shape (num_classes)
+        """
+        if not isinstance(inputs, tuple):
+            inputs_tuple = (inputs,)
+        else:
+            inputs_tuple = inputs
+
+        total_loss = self._forward(inputs_tuple[0], targets)
+
+        for i in range(1, len(inputs_tuple)):
+            total_loss = total_loss + self._forward(inputs_tuple[i], targets)
+
+        return total_loss
+        # return total_loss / len(inputs_tuple)
+
+

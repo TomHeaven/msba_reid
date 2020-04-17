@@ -1,9 +1,13 @@
 .idea
-__pycache__
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
 .DS_Store
 .vscode
 csrc/eval_cylib/*.so
 logs/
+vis/
 .ipynb_checkpoints
 dist_mats
 submit

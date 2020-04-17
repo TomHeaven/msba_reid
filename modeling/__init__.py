@@ -6,33 +6,29 @@
 
 from torch import nn
 
-from .baseline import Baseline
-from .baseline_v3 import Baseline as Baseline_v3
-from .losses import reidLoss
-
+# from .losses import reidLoss
 
 def build_model(cfg, num_classes) -> nn.Module:
-    model = Baseline(
-        cfg.MODEL.BACKBONE, 
-        num_classes, 
-        cfg.MODEL.LAST_STRIDE, 
-        cfg.MODEL.WITH_IBN, 
-        cfg.MODEL.GCB, 
-        cfg.MODEL.STAGE_WITH_GCB, 
-        cfg.MODEL.PRETRAIN, 
-        cfg.MODEL.PRETRAIN_PATH,
-        cfg.MODEL.FINE_TUNE)
-    return model
+	print('cfg.TEST.WEIGHT', cfg.TEST.WEIGHT)
+	if len(cfg.TEST.WEIGHT) > 0:
+		print('>>>>>>>>>>>>>Load model with from pre-trained model<<<<<<<<<<<<<<<')
+		print('>>>>>>>>>>>>>Only used in finetune or inference<<<<<<<<<<<<<<<')
+		# from .baseline_parts_old_ft import Baseline
+		from .baseline_parts_ft import Baseline
+	else:
+		# from .baseline_parts_old import Baseline
+		from .baseline_parts import Baseline
+		print('>>>>>>>>>>>>>Load model with imagenet pre-trained<<<<<<<<<<<<<<<')
 
+	model = Baseline(
+	       cfg.MODEL.BACKBONE, 
+	       num_classes, 
+	       cfg.MODEL.LAST_STRIDE, 
+	       cfg.MODEL.WITH_IBN, 
+	       cfg.MODEL.GCB, 
+	       cfg.MODEL.STAGE_WITH_GCB,
+	       cfg.MODEL.USE_PARTS,
+	       cfg.MODEL.PRETRAIN, 
+	       cfg.MODEL.PRETRAIN_PATH)
+	return model
 
-def build_model_v3(cfg, num_classes) -> nn.Module:
-    model = Baseline_v3(
-        cfg.MODEL.BACKBONE,
-        num_classes,
-        cfg.MODEL.LAST_STRIDE,
-        cfg.MODEL.WITH_IBN,
-        cfg.MODEL.GCB,
-        cfg.MODEL.STAGE_WITH_GCB,
-        pretrain=cfg.MODEL.PRETRAIN,
-        model_path=cfg.MODEL.PRETRAIN_PATH)
-    return model

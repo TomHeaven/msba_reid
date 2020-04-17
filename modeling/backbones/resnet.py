@@ -1,4 +1,4 @@
- # encoding: utf-8
+# encoding: utf-8
 """
 @author:  liaoxingyu
 @contact: sherlockliao01@gmail.com
@@ -8,12 +8,9 @@ import math
 
 import torch
 from torch import nn
-import torch.nn.functional as F
 from torch.utils import model_zoo
-from collections import defaultdict
 
 from ops import *
-from .components.shallow_cam import ShallowCAM
 
 model_urls = {
     'resnet18': 'https://download.pytorch.org/models/resnet18-5c106cde.pth',
@@ -32,12 +29,12 @@ model_layers = {
     'resnet101': [3, 4, 23, 3]
 }
 
-__all__ = ['ResNet', 'Bottleneck', 'ResNet_ABD']
+__all__ = ['ResNet', 'Bottleneck']
 
 
 class IBN(nn.Module):
     """
-    IBN with BN:IN = 1:1
+    IBN with BN:IN = 7:1
     """
     def __init__(self, planes):
         super(IBN, self).__init__()
@@ -50,7 +47,8 @@ class IBN(nn.Module):
     def forward(self, x):
         split = torch.split(x, self.half, dim=1)
         out1 = self.IN(split[0].contiguous())
-        out2 = self.BN(torch.cat(split[1:], dim=1).contiguous())
+        out2 = self.BN(split[1].contiguous())
+        # out2 = self.BN(torch.cat(split[1:], dim=1).contiguous())
         out = torch.cat((out1, out2), 1)
         return out
 
@@ -106,7 +104,7 @@ class Bottleneck(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, last_stride, with_ibn, gcb, stage_with_gcb, block, layers, with_abd=False, with_layer3=False):
+    def __init__(self, last_stride, with_ibn, gcb, stage_with_gcb, block, layers):
         scale = 64
         self.inplanes = scale
         super().__init__()
@@ -122,122 +120,6 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, scale*4, layers[2], stride=2, with_ibn=with_ibn, 
                                        gcb=gcb if stage_with_gcb[2] else None)
         self.layer4 = self._make_layer(block, scale*8, layers[3], stride=last_stride, 
-                                       gcb=gcb if stage_with_gcb[3] else None)
-
-        self.with_layer3 = with_layer3
-        self.with_abd = with_abd
-        if self.with_abd:
-            self.shallow_cam = ShallowCAM(256)
-
-    def _make_layer(self, block, planes, blocks, stride=1, with_ibn=False, gcb=None):
-        downsample = None
-        if stride != 1 or self.inplanes != planes * block.expansion:
-            downsample = nn.Sequential(
-                nn.Conv2d(self.inplanes, planes * block.expansion,
-                          kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes * block.expansion),
-            )
-
-        layers = []
-        if planes == 512:
-            with_ibn = False
-        layers.append(block(self.inplanes, planes, with_ibn, gcb, stride, downsample))
-        self.inplanes = planes * block.expansion
-        for i in range(1, blocks):
-            layers.append(block(self.inplanes, planes, with_ibn, gcb))
-
-        return nn.Sequential(*layers)
-
-    def get_feature_dict(self, x_intermediate):
-        """
-
-        :param x_intermediate:
-        :return:
-        """
-        fmap_dict = defaultdict(list)
-        fmap_dict['intermediate'].append(x_intermediate)
-        fmap_dict = {k: tuple(v) for k, v in fmap_dict.items()}
-        return fmap_dict
-
-    def forward(self, x):
-        x = self.conv1(x)
-        x = self.bn1(x)
-        x = self.relu(x)
-        x = self.maxpool(x)
-
-        x = self.layer1(x)
-        # add by Tan ; v2 correct version
-        if self.with_abd:
-            x_intermediate = x = self.shallow_cam(x)
-        ####
-        x = self.layer2(x)
-        x = self.layer3(x)
-        x3 = x
-        x = self.layer4(x)
-
-        if self.with_layer3:
-            return x3, x
-
-        # print('resnet_ibn x', x.size())
-        if self.with_abd and self.training:
-            f_dict = self.get_feature_dict(x_intermediate)
-            return x, f_dict
-        else:
-            return x
-
-    def load_pretrain(self, model_path=''):
-        #with_model_path = (model_path is not '')
-        # ibn pretrain
-        state_dict = torch.load(model_path)['state_dict']
-        state_dict.pop('module.fc.weight')
-        state_dict.pop('module.fc.bias')
-        new_state_dict = {}
-        for k in state_dict:
-            new_k = '.'.join(k.split('.')[1:])  # remove module in name
-            if self.state_dict()[new_k].shape == state_dict[k].shape:
-                new_state_dict[new_k] = state_dict[k]
-            else:
-                print('ignored key', k)
-        state_dict = new_state_dict
-        self.load_state_dict(state_dict, strict=False)
-
-    def random_init(self):
-        for m in self.modules():
-            if isinstance(m, nn.Conv2d):
-                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
-                m.weight.data.normal_(0, math.sqrt(2. / n))
-            elif isinstance(m, nn.BatchNorm2d):
-                m.weight.data.fill_(1)
-                m.bias.data.zero_()
-
-    @classmethod
-    def from_name(cls, model_name, last_stride, with_ibn, gcb, stage_with_gcb, with_abd):
-        cls._model_name = model_name
-        return ResNet(last_stride, with_ibn, gcb, stage_with_gcb, with_abd=with_abd,
-                      block=Bottleneck, layers=model_layers[model_name])
-
-
-
-## changed by hxx @2019-11-17
-## used for testing the paper "ABD-Net: Attentive but Diverse Person Re-Identification" in ICCV 2019
-
-class ResNet_ABD(nn.Module):
-    def __init__(self, last_stride, with_ibn, gcb, stage_with_gcb, block, layers):
-        scale = 64
-        self.inplanes = scale
-        super().__init__()
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3,
-                               bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.relu = nn.ReLU(inplace=True)
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, scale, layers[0], with_ibn=with_ibn,
-                                       gcb=gcb if stage_with_gcb[0] else None)
-        self.layer2 = self._make_layer(block, scale*2, layers[1], stride=2, with_ibn=with_ibn,
-                                       gcb=gcb if stage_with_gcb[1] else None)
-        self.layer3 = self._make_layer(block, scale*4, layers[2], stride=2, with_ibn=with_ibn,
-                                       gcb=gcb if stage_with_gcb[2] else None)
-        self.layer4 = self._make_layer(block, scale*8, layers[3], stride=last_stride,
                                        gcb=gcb if stage_with_gcb[3] else None)
 
     def _make_layer(self, block, planes, blocks, stride=1, with_ibn=False, gcb=None):
@@ -289,6 +171,8 @@ class ResNet_ABD(nn.Module):
                 new_k = '.'.join(k.split('.')[1:])  # remove module in name
                 if self.state_dict()[new_k].shape == state_dict[k].shape:
                     new_state_dict[new_k] = state_dict[k]
+                else:
+                    print (new_k, self.state_dict()[new_k].shape, k, state_dict[k].shape)
             state_dict = new_state_dict
             self.load_state_dict(state_dict, strict=False)
 
@@ -304,4 +188,4 @@ class ResNet_ABD(nn.Module):
     @classmethod
     def from_name(cls, model_name, last_stride, with_ibn, gcb, stage_with_gcb):
         cls._model_name = model_name
-        return ResNet_ABD(last_stride, with_ibn, gcb, stage_with_gcb, block=Bottleneck, layers=model_layers[model_name])
+        return ResNet(last_stride, with_ibn, gcb, stage_with_gcb, block=Bottleneck, layers=model_layers[model_name])

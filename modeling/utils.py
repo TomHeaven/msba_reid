@@ -5,7 +5,7 @@
 """
 from torch import nn
 
-__all__ = ['weights_init_classifier', 'weights_init_kaiming', 'BN_no_bias']
+__all__ = ['weights_init_classifier', 'weights_init_kaiming', 'BN_no_bias', 'init_params']
 
 
 def weights_init_kaiming(m):
@@ -35,3 +35,26 @@ def BN_no_bias(in_features):
     bn_layer = nn.BatchNorm1d(in_features)
     bn_layer.bias.requires_grad_(False)
     return bn_layer
+
+
+def init_params(x):
+
+    if x is None:
+        return
+
+    for m in x.modules():
+        if isinstance(m, nn.Conv2d):
+            nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm2d):
+            nn.init.normal_(m.weight, 1, 0.02)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.BatchNorm1d):
+            nn.init.normal_(m.weight, 1, 0.02)
+            nn.init.constant_(m.bias, 0)
+        elif isinstance(m, nn.Linear):
+            # nn.init.normal_(m.weight, 0, 0.01)
+            nn.init.kaiming_normal_(m.weight, a=0, mode='fan_out', nonlinearity='relu')
+            if m.bias is not None:
+                nn.init.constant_(m.bias, 0)

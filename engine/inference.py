@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
-@author:  liaoxingyu
-@contact: sherlockliao01@gmail.com
+@author:  Hanlin Tan & Huaxin Xiao & Xiaoyu Zhang
+@contact: hanlin_tan@nudt.edu.cn
 """
 import logging
 
@@ -14,6 +14,7 @@ from utils.re_ranking import re_ranking, compute_distmat_using_gpu
 from utils.distance import low_memory_local_dist, fast_local_dist
 import h5py
 import time
+import os, cv2
 
 
 
@@ -376,8 +377,8 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
         distmat = (distmat1 + distmat2) / 2
 
     else:
-        distmat1 = -torch.mm(qf, gf_flipped.t()).cpu().numpy()
-        distmat2= -torch.mm(qf_flipped, gf.t()).cpu().numpy()
+        distmat1 = -torch.mm(qf, gf.t()).cpu().numpy()
+        distmat2= -torch.mm(qf_flipped, gf_flipped.t()).cpu().numpy()
 
         distmat = (distmat1 + distmat2) / 2
 
@@ -389,6 +390,74 @@ def compute_distmat(cfg, num_query, feats, feats_flipped, local_feats, local_fea
     return distmat
 
 ############
+def inference_vis(
+        cfg,
+        model,
+        test_dataloader,
+        num_query,
+        dataset
+):
+    """
+    inference an aligned net with flipping and two pairs of global feature and local feature
+    :param cfg:
+    :param model:
+    :param test_dataloader:
+    :param num_query:
+    :return:
+    """
+    logger = logging.getLogger("reid_baseline.inference")
+    logger.info("Start inferencing aligned with flipping")
+
+    model.eval()
+
+    # Visualize feature maps
+    activation = {}
+    def hook(module, input, output):
+        setattr(module, "_value_hook", output)
+
+    for n, m in model.named_modules():
+        #print('name', n)
+        if n == "base.layer4.2.relu":
+            m.register_forward_hook(hook)
+    ####
+
+    test_prefetcher = data_prefetcher(test_dataloader, cfg)
+    batch = test_prefetcher.next()
+    while batch[0] is not None:
+        img, pid, camid = batch
+        with torch.no_grad():
+            ret = model(img)
+
+            break
+
+    for n, m in model.named_modules():
+        if n == "base.layer4.2.relu":
+            in_output = m._value_hook
+    
+    #act = activation['relu'].squeeze()
+    print('in_output ', in_output.size())
+    in_output = in_output.permute(0, 2, 3, 1)
+    act = np.zeros((in_output.size(0), in_output.size(1), in_output.size(2)))
+    act = in_output.sum(dim=3).cpu().numpy()
+    print('act', act.shape)
+    act = act / act.max()
+
+    if not os.path.isdir('vis'):
+        os.mkdir('vis')
+    img = img.permute(0, 2, 3, 1).cpu().numpy()
+
+    query_names = dataset.query
+
+    for idx in range(act.shape[0]):
+        print('query_names', query_names[idx][0])
+
+        img = cv2.imread(query_names[idx][0])
+        a = cv2.resize(act[idx], (img.shape[1], img.shape[0]))
+        heatmapshow = cv2.applyColorMap(np.uint8(a * 255.0), cv2.COLORMAP_JET)
+        res = cv2.addWeighted(heatmapshow, 0.5, img, 0.5, 0)
+        cv2.imwrite('vis/fea_%d.png' % idx, res)
+        #break
+
 ## Using
 def inference_aligned_flipped(
         cfg,
@@ -439,7 +508,7 @@ def inference_aligned_flipped(
             else:
                 # print('ret', ret.size())
                 raise Exception("Unknown model returns, length = ", len(ret))
-
+            
         # 4 features
         gfs.append(gf.cpu())
         bn_gfs.append(bn_gf.cpu())
@@ -464,6 +533,7 @@ def inference_aligned_flipped(
         camids.extend(np.asarray(camid))
 
         batch = test_prefetcher.next()
+    
 
     q_pids = np.asarray(pids[:num_query])
     q_camids = np.asarray(camids[:num_query])

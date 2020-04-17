@@ -1,47 +1,56 @@
+import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('ps')
+# ['GTK3Agg', 'GTK3Cairo', 'MacOSX', 'nbAgg', 'Qt4Agg', 'Qt4Cairo', 'Qt5Agg', 'Qt5Cairo', 'TkAgg', 'TkCairo', 'WebAgg', 'WX', 
+# 'WXAgg', 'WXCairo', 'agg', 'cairo', 'pdf', 'pgf', 'ps', 'svg', 'template']
+
 import os
 from sklearn.model_selection import train_test_split
 import shutil
 import tqdm
-import matplotlib.pyplot as plt
 from collections import Counter
 import numpy as np
 import cv2
 
-def data_summary(data_dir, list_file):
-    list_file = os.path.join(data_dir, list_file)
-    with open(list_file, 'r') as f:
-        train_list = f.readlines()
-        #print('train_list', train_list)
+def data_summary(data_dir, data_name, phase):
+    print('Dataset', data_name)
+    train_list = [f for f in  os.listdir(data_dir) if f.endswith('.jpg') or f.endswith('.png')]
+
+    print('#image', len(train_list))
 
     img_ids = []
     person_ids = []
+    person_ids = []
     for line in train_list:
-        img_id, _ = os.path.splitext(line.split('/')[1].split(' ')[0])
+        img_id, _ = os.path.splitext(line)
         img_ids.append(img_id)
 
-        person_id = line.split(' ')[1][:-1]
+        person_id = line.split('_')[0]
         person_ids.append(person_id)
 
-
-    train_person_ids, val_person_ids = train_test_split(person_ids, test_size=0.1, random_state=20191029)
-
     counter = Counter(person_ids)
-    print('counter_keys', counter.keys())
-    print('counter_values', counter.values())
+    print('#PID', len(counter.keys()))
+    #print('counter_values', counter.values())
 
     values = np.asarray(list(counter.values()))
-    print('values length', values.shape)
+    #print('values length', values.shape)
 
     print('min', values.min(), 'max', values.max(), 'mean', np.around(values.mean(), 2))
 
-    for i in range(1, 100):
-        print('%d counts' % i, (values == i).sum())
+    #for i in range(1, 150):
+    #    print('%d counts' % i, (values == i).sum())
 
 
     #plt.bar(counter.keys(), counter.values())
-    #plt.xlabel('person id')
-    #plt.ylabel('number')
+    plt.rcParams.update({'font.size': 18})
+    plt.rcParams.update({'figure.autolayout': True})
+    plt.figure()
+    plt.hist(counter.values(), bins=50)
+    plt.xlabel('Image Number')
+    plt.ylabel('Person ID Number')
     #plt.show()
+    plt.savefig('%s_%s.pdf' % (phase, data_name))
+    plt.close()
 
 
 def get_img_mean_std(data_dir):
@@ -63,10 +72,33 @@ def get_img_mean_std(data_dir):
 
 
 if __name__ == '__main__':
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛'
-    list_file = 'train_list.txt'
-    data_summary(data_dir, list_file)
+    data_dir = '../data/Market-1501-v15.09.15/bounding_box_train'
+    data_summary(data_dir, 'market1501', 'train')
 
-    data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛/mytrain'
+    data_dir = '../data/DukeMTMC-reID/bounding_box_train'
+    data_summary(data_dir, 'dukeMTMC', 'train')
+
+    data_dir = '../batch-dropblock-network/data/cuhk-detect/bounding_box_train'
+    data_summary(data_dir, 'cuhk03-detect', 'train')
+
+    data_dir = '../data/MSMT17/bounding_box_train'
+    data_summary(data_dir, 'msmt17', 'train')
+
+    ########
+    data_dir = '../data/Market-1501-v15.09.15/bounding_box_test'
+    data_summary(data_dir, 'market1501', 'test')
+
+    data_dir = '../data/DukeMTMC-reID/bounding_box_test'
+    data_summary(data_dir, 'dukeMTMC', 'test')
+
+    data_dir = '../batch-dropblock-network/data/cuhk-detect/bounding_box_test'
+    data_summary(data_dir, 'cuhk03-detect', 'test')
+
+    data_dir = '../data/MSMT17/bounding_box_test'
+    data_summary(data_dir, 'msmt17', 'test')
+
+
+
+    #data_dir = '/Volumes/Data/比赛/行人重识别2019/data/复赛/mytrain'
     #get_img_mean_std(data_dir)
 

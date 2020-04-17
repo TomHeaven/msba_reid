@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
-@author:  l1aoxingyu
-@contact: sherlockliao01@gmail.com
+@author:  Hanlin Tan & Huaxin Xiao & Xiaoyu Zhang
+@contact: hanlin_tan@nudt.edu.cn
 """
 
 import argparse
@@ -14,7 +14,7 @@ from torch.backends import cudnn
 sys.path.append('.')
 from config import cfg
 from data import get_test_dataloader
-from engine.inference import inference, inference_aligned_flipped, inference_no_rerank
+from engine.inference import inference, inference_aligned_flipped, inference_no_rerank, inference_vis
 from modeling import build_model
 from utils.logger import setup_logger
 
@@ -51,17 +51,22 @@ def main():
 
     model = build_model(cfg, 0)
     #print('model', model)
+    #print(model.layers)
     model = model.cuda()
     model.load_params_wo_fc(torch.load(cfg.TEST.WEIGHT))
 
-    test_dataloader, num_query, _ = get_test_dataloader(cfg, test_phase=False)
+    test_dataloader, num_query, dataset = get_test_dataloader(cfg, test_phase=False)
 
-    #inference_no_rerank(cfg, model, test_dataloader, num_query)
-    #inference(cfg, model, test_dataloader, num_query)
-    #inference_aligned(cfg, model, test_dataloader, num_query) # using flipped image
+  
+    print('Inference without rerank & flipping')
+    inference_no_rerank(cfg, model, test_dataloader, num_query)  # inference without rerank
 
+    print('Inference with rerank & flipping')
     inference_aligned_flipped(cfg, model, test_dataloader, num_query,  use_local_feature=False, use_rerank=True,
-                              use_cross_feature=True)
+                            use_cross_feature=True)    # inference with rerank & flipping, compatiable with aligned_net
+    #inference_vis(cfg, model, test_dataloader, num_query, dataset) # inference and save result images
+    
+
 
 
 if __name__ == '__main__':
