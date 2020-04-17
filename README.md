@@ -5,7 +5,7 @@
 
 This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets up to 2020.02. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping. 
 
-The model proposed by the paper is named MMNet (Muti-scale, Multi-branch Network). Details and tricks are available at [our paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718).
+The model proposed by the paper is named MSBA (Multiple Scales, Branches and Attention) network. Details and tricks are available at [our paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718).
 
 # Performance 
 
@@ -38,65 +38,65 @@ to train and evaluate on market1501 dataset at resolution 384x128. Scripts for o
 
 # Inference using Pretrained Weights
 + Download pretrained weights from GoogleDrive or BaiduYun (Download links are not ready yet) and place them at `logs` folder.
-+ Inference on Market1501 dataset using MMNet-a under resolution 384x128
++ Inference on Market1501 dataset using MSBA-a under resolution 384x128
 ```shell
 python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'market1501' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MMNet-b/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-b/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
 
-+ Inference on DukeMTMC-reID dataset using MMNet-a under resolution 384x128
++ Inference on DukeMTMC-reID dataset using MSBA-a under resolution 384x128
 ```shell
 python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'dukemtmc' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MMNet-b/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-b/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
 
-+ Inference on CUHK03(Detected) dataset using MMNet-b under resolution 384x128
++ Inference on CUHK03(Detected) dataset using MSBA-b under resolution 384x128
 ```shell
 python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'cuhk03' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MMNet-b/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-b/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
 
-+ Inference on MSMT17 dataset using MMNet-a under resolution 384x128
++ Inference on MSMT17 dataset using MSBA-a under resolution 384x128
 ```shell
 python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
 DATASETS.TEST_NAMES 'msmt17' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MMNet-b/msmt17/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-b/msmt17/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
 The parameter TEST.WEIGHT specify the pretrained weight path. The val.py will also report results with re-rank and flipping inference, which is much better.
 
-# Switch between MMNet-a and MMNet-b
-MMNet-b achieves better performance on CUHK03(Detected) dataset. Switch to MMNet-b by
+# Switch between MSBA-a and MSBA-b
+MSBA-b achieves better performance on CUHK03(Detected) dataset. Switch to MSBA-b by
 ```
 cp modeling/baseline_parts_b.py  modeling/baseline_parts.py 
 ```
-and back to MMNet-a by
+and back to MSBA-a by
 ```
 cp modeling/baseline_parts_a.py  modeling/baseline_parts.py 
 ```
