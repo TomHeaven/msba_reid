@@ -26,7 +26,7 @@ cd reid2019
 ```shell
 cd csrc/eval_cylib; make
 ```
-+ Prepare datasets at `data` folder and set it path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
++ Prepare datasets at `../data` folder and set the path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
 + Prepare pretrained IBN-resnet50 weights from this [repo](https://github.com/XingangPan/IBN-Net) and place it at `~/.torch/checkpoints/resnet50-ibn-a.pth`.
 + Run 
 ```shell
@@ -45,7 +45,7 @@ DATASETS.TEST_NAMES 'market1501' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MSBA-b/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-a/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
@@ -58,7 +58,7 @@ DATASETS.TEST_NAMES 'dukemtmc' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MSBA-b/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-a/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
@@ -84,7 +84,7 @@ DATASETS.TEST_NAMES 'msmt17' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MSBA-b/msmt17/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-a/msmt17/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
@@ -113,7 +113,8 @@ If you find our paper or repo helpful to your work, please consider cite our pap
 @ARTICLE{tan2020msba, 
 author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}}, 
 journal={IEEE Access}, 
-title={MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification}, year={2020}, volume={8}, 
+title={MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification},  
+volume={8}, 
 year={2020},
 pages={63632-63642},
 }

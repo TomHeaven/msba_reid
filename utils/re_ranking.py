@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Fri, 25 May 2018 20:29:09
-
-@author: luohao
+@author: Hanlin Tan
 """
 
 """
