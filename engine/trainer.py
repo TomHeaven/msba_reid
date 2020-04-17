@@ -16,9 +16,9 @@ from torch import nn
 from data import get_dataloader
 from data.datasets.eval_reid import evaluate
 from data.prefetcher import data_prefetcher
-from modeling_xiao import build_model
-from modeling_xiao.baseline_parts import *
-from modeling_xiao.losses import TripletLoss, CrossEntropyLabelSmooth
+from modeling import build_model
+from modeling.baseline_parts import *
+from modeling.losses import TripletLoss, CrossEntropyLabelSmooth
 from solver.build import make_lr_scheduler, make_optimizer
 from utils.meters import AverageMeter
 

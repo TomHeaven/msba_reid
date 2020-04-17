@@ -1,7 +1,7 @@
 # encoding: utf-8
 """
-@author:  liaoxingyu
-@contact: sherlockliao01@gmail.com
+@author:  Hanlin Tan & Huaxin Xiao & Xiaoyu Zhang
+@contact: hanlin_tan@nudt.edu.cn
 """
 import torch
 from torch import nn
