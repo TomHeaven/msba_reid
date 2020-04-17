@@ -17,7 +17,7 @@ The model proposed by the paper is named MSBA (Multiple Scales, Branches and Att
 | DukeMTMC-reID | MSBA-a | 384x128 |	~~79.8~~  80.2 | ~~89.7~~ 90.8	| ~~84.8~~ 85.5	| 86.2 | 91.1 | 88.7 |
 | CUHK03(Detected) | MSBA-b | 384x128 |75.9 |	78.5 |	77.2 |	88.9 |	87.7 |	88.3 |
 | MSMT17 | MSBA-a | 384x128 | 59.0    | 75.3	|  67.1  |   66.2  |    77.5  |  71.8 |
-| MSMT17 | MSBA-a | 384x192 | 60.2    | 76.1	|  68.2  |   estimating  |     estimating |  estimating |
+| MSMT17 | MSBA-a | 384x192 | 60.2    | 76.1	|  68.2  |   67.2  |    77.8 |  72.5  |
 
 where score=(mAP+R1)/2.
 	
@@ -123,18 +123,4 @@ The difference is only in construction of loss function and affects training onl
 If you find our paper or repo helpful to your work, please consider cite our paper
 ```
 @ARTICLE{tan2020msba, 
-author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}}, 
-journal={IEEE Access}, 
-title={MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification},  
-volume={8}, 
-year={2020},
-pages={63632-63642},
-}
-```
-or star this repo. :)
-
-
-
-
-
-
+author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}
