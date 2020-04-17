@@ -104,7 +104,7 @@ The difference is only in construction of loss function and affects training onl
 
 # Optimized Re-ranking Implementation
 
-+ Optimized re-ranking. `utils/re-ranking.py` contains a heavily optimized re-ranking implementation: The distance matrix computation is done on GPU and the memory usage is heavily optimized compared with the original version. This was done when we join in a person ReID competition.
++ Optimized re-ranking. `utils/re-ranking.py` contains a heavily optimized re-ranking implementation: The distance matrix computation is done on GPU and the memory usage is heavily optimized compared with the original version. This is done when we join in a person ReID competition.
 
 # Reference
 
