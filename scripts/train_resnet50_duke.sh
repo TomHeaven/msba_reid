@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 GPUS='0,1'
 
-CUDA_VISIBLE_DEVICES=$GPUS python3 tools/train_xiao.py -cfg='configs/softmax_triplet.yml' \
+CUDA_VISIBLE_DEVICES=$GPUS python3 tools/train.py -cfg='configs/softmax_triplet.yml' \
 DATASETS.NAMES '("dukemtmc",)' \
 DATASETS.TEST_NAMES 'dukemtmc' \
 SOLVER.IMS_PER_BATCH '64' \
-MODEL.NAME 'resnet50_ibn_xiao' \
+MODEL.NAME 'resnet50_ibn' \
 MODEL.WITH_IBN 'True' \
 MODEL.BACKBONE 'resnet50' \
-MODEL.VERSION 'resnet50_ibn_xiao_bs64' \
+MODEL.VERSION 'resnet50_ibn_bs64' \
 SOLVER.OPT 'adam' \
 SOLVER.LOSSTYPE '("softmax", "triplet")' \
 MODEL.PRETRAIN_PATH '/home/tomheaven/.cache/torch/checkpoints/resnet50_ibn_a.pth.tar' \
