@@ -5,6 +5,8 @@
 
 This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets up to 2020.02. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping. 
 
+The model proposed by the paper is named MMNet (Muti-scale, Multi-branch Network).
+
 # Performance 
 
 Performance on the four datasets are available:
@@ -49,17 +51,16 @@ INPUT.SIZE_TEST '[384, 128]'
 ```
 The parameter TEST.WEIGHT specify weight path.
 
-# MMNet-a和MMNet-b切换
-训练时可能需要切换MMNet-a和MMNet-b（仅Loss函数不同），推理时无需切换。
-
-+ 使用MMNet-a
-```
-cp modeling/baseline_parts_a.py  modeling/baseline_parts.py 
-```
-+ 使用MMNet-b
+# Switch between MMNet-a and MMNet-b
+MMNet-b achieves better performance on CUHK03(Detected) dataset. Switch to MMNet-b by
 ```
 cp modeling/baseline_parts_b.py  modeling/baseline_parts.py 
 ```
+and back to MMNet-a by
+```
+cp modeling/baseline_parts_a.py  modeling/baseline_parts.py 
+```
+The difference is only in construction of loss function and affects training only. That is to say, you don't have to do this if you do inference only.
 
 # Reference
 
