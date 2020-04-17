@@ -45,7 +45,7 @@ DATASETS.TEST_NAMES 'market1501' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MSBA-b/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-a/cuhk03/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
@@ -58,7 +58,7 @@ DATASETS.TEST_NAMES 'dukemtmc' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MSBA-b/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-a/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
@@ -84,7 +84,7 @@ DATASETS.TEST_NAMES 'msmt17' \
 MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
-TEST.WEIGHT 'logs/384x128_MSBA-b/msmt17/resnet50_ibn_bs64/ckpts/model_best.pth' \
+TEST.WEIGHT 'logs/384x128_MSBA-a/msmt17/resnet50_ibn_bs64/ckpts/model_best.pth' \
 TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
