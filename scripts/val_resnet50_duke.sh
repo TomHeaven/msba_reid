@@ -7,7 +7,9 @@ MODEL.NAME 'resnet50_ibn' \
 MODEL.BACKBONE 'resnet50' \
 MODEL.WITH_IBN 'True' \
 TEST.WEIGHT 'logs/dukemtmc/resnet50_ibn_bs64/ckpts/model_best.pth' \
-TEST.IMS_PER_BATCH '128'
+TEST.IMS_PER_BATCH '128' \
+INPUT.SIZE_TRAIN '[384, 128]' \
+INPUT.SIZE_TEST '[384, 128]' 
 
 #TEST.WEIGHT '/Volumes/Data/比赛/行人重识别2019/logs/competition1910/aligned_resnet101_ibn_bs63/ckpts/model_best.pth'
 

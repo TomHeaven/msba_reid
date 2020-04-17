@@ -9,7 +9,17 @@ The model proposed by the paper is named MSBA (Multiple Scales, Branches and Att
 
 # Performance 
 
-Performance on the four datasets are available where score is the average of mAP and R1:
++ Performance of this repo:
+
+| Datasets | Model | Image Size |	mAP |	R1 |	Score |	mAP (Rerank+flip) | R1(Rerank+flip) |	Score(Rerank+flip) | 
+|--|--|--|--|--|--|--|--|
+| market1501 | MSBA-a	| 384x128 | 89.0 |	95.8 |	92.4 |	92.5 |	95.7 |	94.7 |
+| DukeMTTMC-reID | MSBA-a | 384x128 |	~~79.8~~  80.2 | ~~ 89.7~~ 90.8	| 85.5	| 86.2 | 91.1 | 88.7 |
+| CUHK03(Detected) | MSBA-b | 384x128 |75.9 |	78.5 |	77.2 |	88.9 |	87.7 |	88.3 |
+| MSMT17 | MMNet-a | 384x128 | 59.0	| 75.3	|   
+| MSMT17 | MMNet-a | 384x192 | 60.2 | 76.1	|
+	
++ Performance comparison with other works mainly in 2019.
 
 ![market1501](https://github.com/TomHeaven/reid2019/blob/paper/readme/market1501.png "Comparison on Market1501")
 ![duke](https://github.com/TomHeaven/reid2019/blob/paper/readme/dukeMTMC.png "Comparison on DukeMTMC-reID")
