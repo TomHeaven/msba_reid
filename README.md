@@ -47,7 +47,7 @@ to train and evaluate on market1501 dataset at resolution 384x128. Scripts for o
 
 
 # Inference using Pretrained Weights
-+ Download pretrained weights from GoogleDrive  (Download links are not ready yet) or [BaiduYun (password:gizs)](https://pan.baidu.com/s/1scchUfCX5rUBausHX4FqBA) and place them at `logs` folder.
++ Download pretrained weights from [GoogleDrive](https://drive.google.com/open?id=1C_Gzrv1zHMxqRkX371RcA1vEXchBz27q)or [BaiduYun (password:gizs)](https://pan.baidu.com/s/1scchUfCX5rUBausHX4FqBA) and place them at `logs` folder.
 + Inference on Market1501 dataset using MSBA-a under resolution 384x128
 ```shell
 python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
