@@ -89,8 +89,7 @@ TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
-
-The parameter TEST.WEIGHT specify the pretrained weight path.
+The parameter TEST.WEIGHT specify the pretrained weight path. The val.py will also report results with re-rank and flipping inference, which is much better.
 
 # Switch between MMNet-a and MMNet-b
 MMNet-b achieves better performance on CUHK03(Detected) dataset. Switch to MMNet-b by
@@ -102,6 +101,10 @@ and back to MMNet-a by
 cp modeling/baseline_parts_a.py  modeling/baseline_parts.py 
 ```
 The difference is only in construction of loss function and affects training only. That is to say, you don't have to do this if you do inference only.
+
+# Optimized Re-ranking Implementation
+
++ Optimized re-ranking. `utils/re-ranking.py` contains a heavily optimized re-ranking implementation: The distance matrix computation is done on GPU and the memory usage is heavily optimized compared with the original version. This was done when we join in a person ReID competition.
 
 # Reference
 
