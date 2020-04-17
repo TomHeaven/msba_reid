@@ -110,10 +110,11 @@ The difference is only in construction of loss function and affects training onl
 
 If you find our paper or repo helpful to your work, please consider cite our paper
 ```
-@ARTICLE{9052718, 
+@ARTICLE{tan2020msba, 
 author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}}, 
 journal={IEEE Access}, 
 title={MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification}, year={2020}, volume={8}, 
+year={2020},
 pages={63632-63642},
 }
 ```
