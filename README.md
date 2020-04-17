@@ -18,6 +18,8 @@ The model proposed by the paper is named MSBA (Multiple Scales, Branches and Att
 | CUHK03(Detected) | MSBA-b | 384x128 |75.9 |	78.5 |	77.2 |	88.9 |	87.7 |	88.3 |
 | MSMT17 | MSBA-a | 384x128 | 59.0    | 75.3	|  67.1  |   66.2  |    77.5  |  71.8 |
 | MSMT17 | MSBA-a | 384x192 | 60.2    | 76.1	|  68.2  |   estimating  |     estimating |  estimating |
+
+where score=(mAP+R1)/2.
 	
 + Performance comparison with other works mainly in 2019.
 
@@ -99,7 +101,7 @@ TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
-The parameter TEST.WEIGHT specify the pretrained weight path. The val.py will also report results with re-rank and flipping inference, which is much better.
+The parameter TEST.WEIGHT specifies path of the pretrained weight. The parameter `INPUT.SIZE_TEST` controls the image size for inference. The file ` tools/val.py` will also report performance results with re-ranking and flipping inference, which generally improves performance metrics by a large margin.
 
 # Switch between MSBA-a and MSBA-b
 MSBA-b achieves better performance on CUHK03(Detected) dataset. Switch to MSBA-b by
