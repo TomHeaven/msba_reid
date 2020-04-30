@@ -1,9 +1,9 @@
-# MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification
+# MSBA: Multiple Scales, Branches and Attention Network with Bag of Tricks for Person Re-Identification
 `Hanlin Tan ; Huaxin Xiao ; Xiaoyu Zhang ; Bin Dai ; Shiming Lai ; Yu Liu ; Maojun Zhang`
 
-`National Unverisity of Defense Technology, China`
+`National University of Defense Technology, China`
 
-This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets up to 2020.02. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping, and the model does not take advantage of temporal information.
+This repository contains code for our paper [MSBA: Multiple Scales, Branches and Attention Network with Bag of Tricks for Person Re-Identification](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718), in which we have achieved the state-of-the-art performance on Market1501, DukeMTMC-reid, CUHK03(Detected) and MSMT17 datasets as of Feb, 2020. Please note the "state-of-the-art" is under restriction of no inference tricks and no additional information other than image contents. Namely, the results in the paper is without re-ranking or flipping, and the model does not take advantage of temporal information. Besides, the computation complexity of the network backbone should not be greater than Resnet-50.
 
 The model proposed by the paper is named MSBA (Multiple Scales, Branches and Attention) network. Details and tricks are available at [our paper](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9052718).
 
@@ -11,13 +11,15 @@ The model proposed by the paper is named MSBA (Multiple Scales, Branches and Att
 
 + Performance of this repo:
 
-| Datasets | Model | Image Size |	mAP |	R1 |	Score |	mAP (Rerank+flip) | R1(Rerank+flip) |	Score(Rerank+flip) | 
-|--|--|--|--|--|--|--|--|
+| Datasets | Model | Image Size | mAP | R1 | Score | mAP (Re-rank+flip) | R1 (Re-rank+flip) | Score (Re-rank+flip) |
+|--|--|--|--|--|--|--|--|--|
 | market1501 | MSBA-a	| 384x128 | 89.0 |	95.8 |	92.4 |	92.5 |	95.7 |	94.7 |
-| DukeMTTMC-reID | MSBA-a | 384x128 |	~~79.8~~  80.2 | ~~ 89.7~~ 90.8	| 85.5	| 86.2 | 91.1 | 88.7 |
+| DukeMTMC-reID | MSBA-a | 384x128 |	~~79.8~~  80.2 | ~~89.7~~ 90.8	| ~~84.8~~ 85.5	| 86.2 | 91.1 | 88.7 |
 | CUHK03(Detected) | MSBA-b | 384x128 |75.9 |	78.5 |	77.2 |	88.9 |	87.7 |	88.3 |
-| MSMT17 | MMNet-a | 384x128 | 59.0	| 75.3	|   
-| MSMT17 | MMNet-a | 384x192 | 60.2 | 76.1	|
+| MSMT17 | MSBA-a | 384x128 | 59.0    | 75.3	|  67.1  |   66.2  |    77.5  |  71.8 |
+| MSMT17 | MSBA-a | 384x192 | 60.2    | 76.1	|  68.2  |   67.2  |    77.8 |  72.5  |
+
+where score=(mAP+R1)/2.
 	
 + Performance comparison with other works mainly in 2019.
 
@@ -36,7 +38,7 @@ cd msba_reid
 ```shell
 cd csrc/eval_cylib; make
 ```
-+ Prepare datasets at `../data` folder and set the path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
++ Prepare the datasets at `../data` folder and set the path by updating `_C.DATASETS.ROOT_DIR` of `config/defaults.py` .
 + Prepare pretrained IBN-resnet50 weights from this [repo](https://github.com/XingangPan/IBN-Net) and place it at `~/.torch/checkpoints/resnet50-ibn-a.pth`.
 + Run 
 ```shell
@@ -47,7 +49,7 @@ to train and evaluate on market1501 dataset at resolution 384x128. Scripts for o
 
 
 # Inference using Pretrained Weights
-+ Download pretrained weights from GoogleDrive or BaiduYun (Download links are not ready yet) and place them at `logs` folder.
++ Download pretrained weights from [GoogleDrive](https://drive.google.com/open?id=1C_Gzrv1zHMxqRkX371RcA1vEXchBz27q) or [BaiduYun (password:gizs)](https://pan.baidu.com/s/1scchUfCX5rUBausHX4FqBA) and place them at `logs` folder.
 + Inference on Market1501 dataset using MSBA-a under resolution 384x128
 ```shell
 python3 tools/val.py -cfg='configs/softmax_triplet.yml' \
@@ -99,7 +101,7 @@ TEST.IMS_PER_BATCH '128' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 
 ```
-The parameter TEST.WEIGHT specify the pretrained weight path. The val.py will also report results with re-rank and flipping inference, which is much better.
+The parameter TEST.WEIGHT specifies path of the pretrained weight. The parameter `INPUT.SIZE_TEST` controls the image size for inference. The file ` tools/val.py` will also report performance results with re-ranking and flipping inference, which generally improves performance metrics by a large margin.
 
 # Switch between MSBA-a and MSBA-b
 MSBA-b achieves better performance on CUHK03(Detected) dataset. Switch to MSBA-b by
@@ -121,18 +123,9 @@ The difference is only in construction of loss function and affects training onl
 If you find our paper or repo helpful to your work, please consider cite our paper
 ```
 @ARTICLE{tan2020msba, 
-author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}}, 
+author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}
 journal={IEEE Access}, 
-title={MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification},  
-volume={8}, 
-year={2020},
+title={MSBA: Multiple Scales, Branches and Attention Network With Bag of Tricks for Person Re-Identification}, year={2020}, volume={8}, 
 pages={63632-63642},
 }
 ```
-or star this repo. :)
-
-
-
-
-
-
