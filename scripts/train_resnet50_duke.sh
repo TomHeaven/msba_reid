@@ -11,7 +11,7 @@ MODEL.BACKBONE 'resnet50' \
 MODEL.VERSION 'resnet50_ibn_bs64' \
 SOLVER.OPT 'adam' \
 SOLVER.LOSSTYPE '("softmax", "triplet")' \
-MODEL.PRETRAIN_PATH '/home/tomheaven/.cache/torch/checkpoints/resnet50_ibn_a.pth.tar' \
+MODEL.PRETRAIN_PATH ${HOME}'/.cache/torch/checkpoints/resnet50_ibn_a.pth.tar' \
 MODEL.USE_PARTS '2' \
 INPUT.SIZE_TRAIN '[384, 128]' \
 INPUT.SIZE_TEST '[384, 128]' 

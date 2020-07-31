@@ -26,7 +26,7 @@ class Baseline(nn.Module):
         super().__init__()
         try:
             if backbone.startswith('resnet'):
-                self.base = ResNet.from_name(backbone, last_stride, with_ibn, gcb, stage_with_gcb)
+                self.base = ResNet.from_name(backbone, las000000t_stride, with_ibn, gcb, stage_with_gcb)
             elif backbone.startswith('resnext'):
                 self.base = ResNext.from_name(backbone, last_stride, with_ibn, gcb, stage_with_gcb)
         except:
