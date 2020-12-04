@@ -120,7 +120,7 @@ The difference is only in construction of loss function and affects training onl
 
 # Reference
 
-If you find our paper or repo helpful to your work, please consider cite our paper
+If you find our paper or repo helpful to your work, please cite our paper
 ```
 @ARTICLE{tan2020msba, 
 author={H. {Tan} and H. {Xiao} and X. {Zhang} and B. {Dai} and S. {Lai} and Y. {Liu} and M. {Zhang}
